@@ -11,7 +11,7 @@ const GROUPS: [string, string[]][] = [
  ['✋',['아니요']], ['🙋',['도와주세요','도와줘요']], ['🚻',['화장실']], ['🏠',['집','집에 가요']],
 ];
 const aliases = new Map(GROUPS.flatMap(([icon, labels]) => labels.map(label => [normalizeSymbolLabel(label), icon] as const)));
-export function lookupSymbol(label: string, builtins: ReadonlyArray<{ w: string; i: string }> = []): string | undefined {
+export function lookupSymbol(label: string, builtins: readonly { w: string; i: string }[] = []): string | undefined {
  const key = normalizeSymbolLabel(label);
  return builtins.find(item => normalizeSymbolLabel(item.w) === key && !!item.i)?.i ?? aliases.get(key);
 }

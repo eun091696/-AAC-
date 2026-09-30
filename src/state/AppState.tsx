@@ -128,7 +128,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     });
     resetL1(id);
     setSettings((s) => (s.placeId === id ? { ...s, placeId: 'hospital' } : s));
-  }, []);
+  }, [resetL1]);
 
   const resetAll = useCallback(async () => {
     await clearState();

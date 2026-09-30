@@ -42,12 +42,20 @@ export function CardForm({ onSubmit, onCancel, submitLabel = '카드 추가', l1
   const imageKey = JSON.stringify([label.trim(), kind, sentence.trim()]);
   const libraryImage = findCardImage(label);
   const cardImage = generated?.key === imageKey ? generated.image : libraryImage;
-  useEffect(() => {
-    generation.current++;
-    controller.current?.abort();
+  // 입력이 바뀌면 진행 중이던 그림 생성 상태를 렌더 중에 초기화 (effect 안 setState 대신)
+  const [prevImageKey, setPrevImageKey] = useState(imageKey);
+  if (prevImageKey !== imageKey) {
+    setPrevImageKey(imageKey);
     setGenerating(false);
     setImageError('');
-    return () => { generation.current++; controller.current?.abort(); };
+  }
+  // 이전 요청은 무효화하고 네트워크 요청은 취소
+  useEffect(() => {
+    const gen = generation;
+    const ctrl = controller;
+    gen.current++;
+    ctrl.current?.abort();
+    return () => { gen.current++; ctrl.current?.abort(); };
   }, [imageKey]);
 
   const makeImage = async () => {
