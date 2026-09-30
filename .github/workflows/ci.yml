@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   app:
-    name: 앱 검사 (타입 + 로직)
+    name: 앱 검사 (린트 + 타입 + 로직)
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -26,10 +26,14 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: 린트 (ESLint)
+        run: npm run lint
       - name: 타입 검사
         run: npm run typecheck
       - name: 로직 테스트
         run: npm run check:logic
+      - name: 심볼 카탈로그 테스트
+        run: npm run check:symbols
 
   server:
     name: 서버 테스트
