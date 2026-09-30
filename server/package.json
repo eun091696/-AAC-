@@ -6,7 +6,7 @@
   "main": "bin/start.js",
   "scripts": {
     "start": "node bin/start.js",
-    "test": "node --test test/"
+    "test": "node --test test/*.test.js"
   },
   "engines": {
     "node": ">=18"

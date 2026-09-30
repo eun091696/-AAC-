@@ -29,3 +29,7 @@ yarn-error.*
 .env
 .env*.local
 *.tsbuildinfo
+
+# Card image tests
+.logic-images/
+server/.env

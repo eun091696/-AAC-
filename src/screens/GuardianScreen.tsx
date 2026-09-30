@@ -5,6 +5,7 @@ import { l1Indices, l1Items, LEVELS } from '../data';
 import { useL1Count } from '../lib/useL1Count';
 import { applySelection, generateBoardDraft } from '../lib/aiDraft';
 import { useApp } from '../state/AppState';
+import { CardSymbol } from '../components/CardSymbol';
 import { CardForm } from '../components/CardForm';
 import { C } from '../theme';
 
@@ -86,7 +87,7 @@ export function GuardianScreen({ onClose }: { onClose: () => void }) {
                     style={[s.dItem, !keep[i] && { opacity: 0.4 }]}
                     onPress={() => setKeep(keep.map((v, k) => (k === i ? !v : v)))}
                   >
-                    <Text style={{ fontSize: 13 }}>{`${keep[i] ? '☑️' : '⬜️'} ${it.i} ${it.w}`}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><CardSymbol icon={it.i} label={it.w} image={it.image} size={36} /><Text style={{ fontSize: 13, flex: 1 }}>{`${keep[i] ? '✓' : '□'} ${it.w}`}</Text></View>
                   </Pressable>
                 ))}
               </View>
@@ -154,7 +155,7 @@ export function GuardianScreen({ onClose }: { onClose: () => void }) {
           ) : (
             cardExtras.map((it, i) => (
               <View key={`${i}-${it.w}`} style={s.mine}>
-                <Text style={{ fontSize: 14 }}>{`${it.i} ${it.w}${it.t === 'n' ? ' (단어)' : ' (표현)'}`}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 }}><CardSymbol icon={it.i} label={it.w} image={it.image} size={36} /><Text style={{ fontSize: 14, flex: 1 }}>{`${it.w}${it.t === 'n' ? ' (단어)' : ' (표현)'}`}</Text></View>
                 <Pressable onPress={() => removeCard(cardPlace.id, i)} hitSlop={8}>
                   <Text style={{ color: C.danger, fontSize: 12 }}>삭제</Text>
                 </Pressable>
@@ -167,8 +168,9 @@ export function GuardianScreen({ onClose }: { onClose: () => void }) {
             const changed = !!l1Overrides[cardPlace.id]?.[String(i)];
             return (
               <View key={`l1-${i}`} style={s.mine}>
-                <Text style={[{ fontSize: 14 }, changed && { color: C.primary, fontWeight: '700' }]}>
-                  {`${i + 1}. ${it.i} ${it.l1s ?? it.w}${changed ? '  (바꿈)' : ''}`}
+                <CardSymbol icon={it.i} label={it.w} image={it.image} size={36} />
+                <Text style={[{ fontSize: 14, flex: 1, marginHorizontal: 6 }, changed && { color: C.primary, fontWeight: '700' }]}>
+                  {`${i + 1}. ${it.l1s ?? it.w}${changed ? '  (바꿈)' : ''}`}
                 </Text>
                 {changed && (
                   <Pressable onPress={() => setL1Slot(cardPlace.id, i, null)} hitSlop={8}>
@@ -261,6 +263,7 @@ export function GuardianScreen({ onClose }: { onClose: () => void }) {
         >
           <Text style={s.btnT}>전체 초기화</Text>
         </Pressable>
+        <Text style={s.lvD}>기본 그림: OpenMoji · CC BY-SA 4.0 · openmoji.org (원본 그대로 사용). 임상 검증된 AAC 상징 세트는 아니며, 사용자가 그림의 뜻을 이해하는지 확인해 주세요.</Text>
       </ScrollView>
     </KeyboardAvoidingView>
   );
