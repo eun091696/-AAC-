@@ -1,6 +1,7 @@
 import type { CardImage } from '../types';
 import { BUILTIN_PLACES, CORE, OPTS } from '../data';
 import { lookupSymbol } from './symbolCatalog';
+import { storeCardImage } from './cardImageStore';
 import { SYMBOL_ASSETS } from './symbolAssets';
 const known = [...BUILTIN_PLACES.flatMap(p=>p.items), ...Object.values(CORE).flat(), ...Object.values(OPTS).flat()];
 export function findCardImage(label: string): CardImage | undefined {
@@ -25,7 +26,7 @@ export async function generateCardImage(label: string, kind: 'n'|'p', sentence: 
   const data: unknown = await response.json();
   const uri = typeof data === 'object' && data !== null && 'uri' in data ? data.uri : undefined;
   if (typeof uri !== 'string' || !/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(uri) || uri.length > 3_000_000) throw new Error('올바른 그림 응답을 받지 못했어요.');
-  return { source: 'ai', uri };
+  return { source: 'ai', uri: await storeCardImage(uri) };
  } catch (error) {
   if (controller.signal.aborted) throw new Error('그림 생성을 중단했거나 시간이 초과됐어요. 다시 시도해 주세요.');
   throw error instanceof Error ? error : new Error('이미지 서버에 연결하지 못했어요.');

@@ -106,4 +106,5 @@ export const SYMBOL_ASSETS: Record<string, ImageSourcePropType> = {
   '🍊': require('../../assets/symbols/1F34A.png'),
   '🍉': require('../../assets/symbols/1F349.png'),
   '💬': require('../../assets/symbols/1F4AC.png'),
+  '😵': require('../../assets/symbols/1F635.png'),
 };

@@ -1,7 +1,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 const sources = await Promise.all(['src/data.ts','src/lib/aiDraft.ts'].map(p=>readFile(p,'utf8')));
 const icons=new Set(sources.flatMap(src=>[...src.matchAll(/(?:N|P)\('([^']+)'/g),...src.matchAll(/\bi: '([^']+)'/g),...src.matchAll(/\['([^']+)',/g)].map(m=>m[1]).filter(x=>x && !/[가-힣A-Za-z]/u.test(x))));
-for(const icon of ['🍎','🍌','🍞','🍚','🚌','🚗','🐶','🐱','⚽','📚','💊','🛏️','🚿','🧼','👕','🥛','🍪','🍓','🍊','🍉','🧃','🧑','💬']) icons.add(icon);
+for(const icon of ['🍎','🍌','🍞','🍚','🚌','🚗','🐶','🐱','⚽','📚','💊','🛏️','🚿','🧼','👕','🥛','🍪','🍓','🍊','🍉','🧃','🧑','💬','😵']) icons.add(icon);
 const entries=[];
 for(const icon of icons){
  const code=[...icon].map(c=>c.codePointAt(0).toString(16).toUpperCase().padStart(4,'0')).filter(x=>x!=='FE0F'||icon.includes('\u20e3')||icon.includes('\u200d')).join('-');
