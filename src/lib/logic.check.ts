@@ -1,0 +1,66 @@
+/* 핵심 로직 점검 스크립트: npm run check:logic */
+import { compose, iga } from './korean';
+import { BUILTIN_PLACES, l1Items, N, OPTS, P, suggestL1Sentence } from '../data';
+import { applySelection, draftFromText, extractPlaceName } from './aiDraft';
+import { mapHeard } from './heard';
+
+let fail = 0;
+const eq = (name: string, got: unknown, want: unknown) => {
+  const ok = JSON.stringify(got) === JSON.stringify(want);
+  if (!ok) fail++;
+  console.log(`${ok ? 'PASS' : 'FAIL'} ${name}${ok ? '' : ` -> got ${JSON.stringify(got)}, want ${JSON.stringify(want)}`}`);
+};
+
+const [hospital, restaurant] = BUILTIN_PLACES;
+const find = (p: typeof hospital, w: string) => p.items.find((x) => x.w === w)!;
+
+eq('iga 받침없음', iga('배'), '배가');
+eq('iga 받침있음', iga('목'), '목이');
+eq('조합 배+아파요', compose([find(hospital, '배'), find(hospital, '아파요')]), '배가 아파요');
+eq('조합 명사2+아파요', compose([find(hospital, '배'), find(hospital, '머리'), find(hospital, '아파요')]), '배, 머리가 아파요');
+eq('조합 물+주세요', compose([find(restaurant, '물'), find(restaurant, '주세요')]), '물 주세요');
+{
+  const dental = draftFromText('치과', 't');
+  const f = (w: string) => dental.items.find((x) => x.w === w)!;
+  eq('조합 치과1', compose([f('이'), f('아파요'), f('소리 무서워요'), f('무서워요')]), '이가 아파요, 소리가 무서워요, 무서워요');
+  eq('조합 치과2(표현 뒤 명사)', compose([f('아파요'), f('이'), f('소리 무서워요'), f('물 주세요')]), '이가 아파요, 소리가 무서워요, 물 주세요');
+  eq('조합 치과3', compose([f('잇몸'), f('아파요'), f('이'), f('시려요')]), '잇몸이 아파요, 이가 시려요');
+}
+eq('조합 무서워요+배+아파요', compose([find(hospital, '무서워요'), find(hospital, '배'), find(hospital, '아파요')]), '무서워요, 배가 아파요');
+eq('조합 명사만', compose([find(hospital, '배')]), '배');
+{
+  const store = BUILTIN_PLACES[2];
+  const g = (w: string) => store.items.find((x) => x.w === w)!;
+  eq('조합 편의점 질문', compose([g('라면'), g('얼마예요?'), g('데워 주세요')]), '라면 얼마예요? 데워 주세요');
+}
+{
+  const foot = { ...N('🦶', '발'), added: true };
+  eq('추가 카드 발+아파요', compose([foot, find(hospital, '아파요')]), '발이 아파요');
+  const dizzy = P('😵', '어지러워요', '어지러워요', 'iga');
+  eq('추가 표현 머리+어지러워요', compose([find(hospital, '머리'), dizzy]), '머리가 어지러워요');
+}
+eq('신체 옵션 이', OPTS.body.find((o) => o.w === '이')!.s, '이가 아파요');
+eq('L1 병원 6개', l1Items(hospital).length, 6);
+eq('L1 태블릿 9칸', l1Items(hospital, 9).length, 9);
+eq('L1 9칸 앞 6칸 유지', l1Items(hospital, 9).slice(0, 6).map((x) => x.w), l1Items(hospital).map((x) => x.w));
+eq('L1 문장 추천 병원 발', suggestL1Sentence(N('🦶', '발'), hospital), '발이 아파요');
+eq('L1 문장 추천 식당 물', suggestL1Sentence(N('💧', '물'), restaurant), '물 주세요');
+eq('모든 장소 L1 인덱스 유효', BUILTIN_PLACES.every((p) => p.l1.every((i) => i < p.items.length)), true);
+eq('장소명 추출', extractPlaceName('내일 치과 가요'), '치과');
+eq('장소명 추출2', extractPlaceName('토요일 수영장에 가요'), '수영장');
+eq('초안 치과', draftFromText('내일 치과 가요', 't').name, '치과');
+eq('초안 소아과', draftFromText('모레 소아과 예약', 't').name, '소아과');
+eq('초안 일반', draftFromText('토요일 수영장에 가요', 't').name, '수영장');
+const d = draftFromText('카페 가요', 't');
+const sel = applySelection(d, d.items.map((_, i) => i % 2 === 0));
+eq('선택 적용 개수', sel.items.length, 6);
+eq('선택 후 L1 유효', sel.l1.every((i) => i < sel.items.length) && sel.l1.length === 6, true);
+eq('들은말 언제', mapHeard('언제부터 아팠어요?'), 'time');
+eq('들은말 봉투', mapHeard('봉투 필요하세요?'), 'yesno');
+eq('들은말 결제', mapHeard('결제는 어떻게 하세요?'), 'pay');
+
+if (fail) {
+  console.log(`\n${fail} failed`);
+  throw new Error('logic check failed');
+}
+console.log('\nall passed');
