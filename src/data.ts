@@ -95,8 +95,21 @@ export const BUILTIN_PLACES: Place[] = [
 
 /** L1 칸에 들어갈 items 인덱스. 판의 l1 순서를 먼저 쓰고, 칸이 남으면(태블릿 9칸) 나머지 카드로 채움 */
 export function l1Indices(place: Place, count = 6): number[] {
-  const idx = place.l1.filter((i) => i >= 0 && i < place.items.length).slice(0, count);
-  for (let i = 0; idx.length < count && i < place.items.length; i++) if (!idx.includes(i)) idx.push(i);
+  const len = place.items.length;
+  const ok = (i: number) => i >= 0 && i < len && !place.items[i].hidden;
+  const base = place.l1.filter((i) => i >= 0 && i < len).slice(0, count);
+  const used = new Set(base.filter(ok));
+  const next = () => {
+    for (let i = 0; i < len; i++) if (ok(i) && !used.has(i)) { used.add(i); return i; }
+    return -1;
+  };
+  // 숨긴 카드 자리는 같은 칸에서 다른 카드로 채움 (나머지 칸 위치는 그대로)
+  const idx = base.map((i) => (ok(i) ? i : next())).filter((i) => i >= 0);
+  while (idx.length < count) {
+    const n = next();
+    if (n < 0) break;
+    idx.push(n);
+  }
   return idx;
 }
 

@@ -6,6 +6,7 @@ import { compose } from '../lib/korean';
 import { CardSymbol } from './CardSymbol';
 import { findCardImage, generateCardImage, imageServerConfigured } from '../lib/cardImages';
 import { C } from '../theme';
+import { confirmAsync } from '../lib/confirm';
 
 type Kind = 'n' | 'p';
 type Join = 'none' | 'iga' | 'obj';
@@ -17,23 +18,34 @@ type Props = {
   submitLabel?: string;
   /** 주면 "L1 화면에도 보이기" 옵션이 나타남. slots: 지금 L1 칸 목록 */
   l1?: { slots: Item[]; place: Place };
+  /** 주면 수정 모드: 이 카드 값으로 채워서 시작 */
+  initial?: Item;
+  /** 저장 안 한 입력이 있는지 부모에게 알림 (뒤로가기 확인용) */
+  onDirtyChange?: (dirty: boolean) => void;
 };
+
+const UNSAVED_TITLE = '저장하지 않은 내용이 있어요';
+export const UNSAVED_MSG = '입력한 내용이 저장되지 않았어요. 정말 취소할까요?';
 
 const SAMPLE_NOUN = N('', '배');
 const SAMPLE_PRED = P('', '아파요', '아파요', 'iga');
 
 /** 카드(버튼) 1개를 만드는 입력 폼. 홈 화면, 보호자 모드, 판 초안에서 공통 사용 */
-export function CardForm({ onSubmit, onCancel, submitLabel = '카드 추가', l1 }: Props) {
-  const [generated, setGenerated] = useState<{ key: string; image: CardImage } | null>(null);
+export function CardForm({ onSubmit, onCancel, submitLabel = '카드 추가', l1, initial, onDirtyChange }: Props) {
+  const initSentence = initial?.t === 'p' && initial.s !== initial.w ? initial.s : '';
+  const initJoin: Join = initial?.j ?? 'none';
+  const [generated, setGenerated] = useState<{ key: string; image: CardImage } | null>(
+    initial?.image ? { key: JSON.stringify([initial.w.trim(), initial.t, initSentence.trim()]), image: initial.image } : null,
+  );
   const [generating, setGenerating] = useState(false);
   const [imageError, setImageError] = useState('');
   const [allowAI, setAllowAI] = useState(false);
   const generation = useRef(0);
   const controller = useRef<AbortController | null>(null);
-  const [label, setLabel] = useState('');
-  const [kind, setKind] = useState<Kind>('n');
-  const [sentence, setSentence] = useState('');
-  const [join, setJoin] = useState<Join>('none');
+  const [label, setLabel] = useState(initial?.w ?? '');
+  const [kind, setKind] = useState<Kind>(initial?.t ?? 'n');
+  const [sentence, setSentence] = useState(initSentence);
+  const [join, setJoin] = useState<Join>(initJoin);
   const [error, setError] = useState('');
   const [showL1, setShowL1] = useState(false);
   const [l1Text, setL1Text] = useState('');
@@ -79,8 +91,24 @@ export function CardForm({ onSubmit, onCancel, submitLabel = '카드 추가', l1
     const w = label.trim();
     if (!w) return null;
     const i = cardImage?.source === 'library' ? cardImage.symbol : '💬';
-    if (kind === 'n') return { ...N(i, w), image: cardImage, added: true };
-    return { ...P(i, w, sentence.trim() || w, join === 'none' ? undefined : join), image: cardImage, added: true };
+    // 수정 모드에서 종류가 같으면 원래 카드의 다른 속성(신체 선택 등)은 유지
+    const keepFrom = initial && initial.t === kind ? initial : {};
+    if (kind === 'n') return { ...keepFrom, ...N(i, w), image: cardImage, added: true };
+    return { ...keepFrom, ...P(i, w, sentence.trim() || w, join === 'none' ? undefined : join), image: cardImage, added: true };
+  };
+
+  const dirty = initial
+    ? label !== initial.w || kind !== initial.t || sentence !== initSentence || join !== initJoin
+    : !!(label.trim() || sentence.trim() || l1Text.trim());
+  useEffect(() => {
+    onDirtyChange?.(dirty);
+  }, [dirty, onDirtyChange]);
+  useEffect(() => () => onDirtyChange?.(false), [onDirtyChange]);
+
+  const cancel = async () => {
+    if (!onCancel) return;
+    if (dirty && !(await confirmAsync(UNSAVED_TITLE, UNSAVED_MSG, '취소하기', '계속 작성'))) return;
+    onCancel();
   };
   const item = build();
   const preview = !item ? '' : item.t === 'n' ? compose([item, SAMPLE_PRED]) : item.j ? compose([SAMPLE_NOUN, item]) : item.s;
@@ -99,7 +127,7 @@ export function CardForm({ onSubmit, onCancel, submitLabel = '카드 추가', l1
     if (generating) return;
     if (!cardImage) {
       if (allowAI && imageServerConfigured()) { void makeImage(); setError('그림이 만들어지면 확인한 뒤 다시 추가해 주세요.'); }
-      else setError('그림을 만들거나, 그림 없이 추가를 선택해 주세요.');
+      else setError(initial ? '그림을 만들거나, 그림 없이 저장을 선택해 주세요.' : '그림을 만들거나, 그림 없이 추가를 선택해 주세요.');
       return;
     }
     save(item);
@@ -107,6 +135,7 @@ export function CardForm({ onSubmit, onCancel, submitLabel = '카드 추가', l1
 
   const save = (item: Item) => {
     onSubmit(item, l1 && showL1 && slot !== null ? { slot, item: { ...item, l1s: l1Sentence } } : undefined);
+    if (initial) return; // 수정 모드는 부모가 폼을 닫음
     setShowL1(false);
     setL1Text('');
     setSlot(null);
@@ -206,18 +235,18 @@ export function CardForm({ onSubmit, onCancel, submitLabel = '카드 추가', l1
 
       <View style={s.row}>
         {onCancel && (
-          <Pressable style={[s.btn, s.ghost, { flex: 1 }]} onPress={onCancel}>
+          <Pressable style={[s.btn, s.ghost, { flex: 1 }]} onPress={() => void cancel()}>
             <Text style={s.btnT}>취소</Text>
           </Pressable>
         )}
         <Pressable style={[s.btn, s.pri, { flex: 1 }, generating && { opacity: 0.5 }]} disabled={generating} onPress={submit}>
-          <Text style={[s.btnT, { color: '#fff' }]}>{`＋ ${submitLabel}`}</Text>
+          <Text style={[s.btnT, { color: '#fff' }]}>{initial ? submitLabel : `＋ ${submitLabel}`}</Text>
         </Pressable>
       </View>
       {!cardImage && !generating && item && <Pressable style={s.check} onPress={() => {
         if (l1 && showL1 && slot === null) { setError('L1에서 바꿀 칸을 골라 주세요'); return; }
         save(item);
-      }} accessibilityRole="button"><Text style={s.hint}>지금은 그림 없이 추가 (나중에 카드를 다시 만들 수 있어요)</Text></Pressable>}
+      }} accessibilityRole="button"><Text style={s.hint}>{initial ? '그림 없이 저장' : '지금은 그림 없이 추가 (나중에 카드를 수정할 수 있어요)'}</Text></Pressable>}
     </View>
   );
 }

@@ -14,6 +14,8 @@ export type Item = {
   body?: boolean; // L1에서 누르면 신체 부위 선택
   tone?: Tone;
   added?: boolean; // 보호자가 직접 추가한 카드
+  hidden?: boolean; // 보호자가 숨긴 기본 카드 (L1/L2에 안 보임)
+  edited?: boolean; // 보호자가 고친 기본 카드
   l1s?: string; // L1 칸에서 보여주고 말할 완성 문장 (예: 발이 아파요)
 };
 
