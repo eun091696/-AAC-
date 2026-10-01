@@ -4,6 +4,7 @@ import type { Item, Opt } from '../types';
 import { CORE, GEN_PRED, OPTS } from '../data';
 import { useL1Count } from '../lib/useL1Count';
 import { compose } from '../lib/korean';
+import { visibleItems } from '../lib/cardEdits';
 import { useApp } from '../state/AppState';
 import { Grid } from '../components/Grid';
 import { SymbolButton } from '../components/SymbolButton';
@@ -125,7 +126,7 @@ export function HomeScreen({ onShow, onGuardian, onAddCard, onAsk }: Props) {
 
       {L === 'L2' && (
         <Grid<Item | null>
-          data={[...place.items, null]}
+          data={[...visibleItems(place), null]}
           cols={tablet ? 4 : 3}
           rowHeight={tablet ? 110 : 88}
           renderItem={(it) =>

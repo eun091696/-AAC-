@@ -6,7 +6,7 @@ const KEY = 'acc.v1';
 
 /** extras: 장소 id별로 보호자가 추가한 카드 (기본 판에도 추가 가능) */
 /** l1Overrides: 장소 id별 L1 칸 교체 { 칸번호: 카드 } */
-export type Persisted = { settings: Settings; custom: Place[]; extras: Record<string, Item[]>; l1Overrides: Record<string, Record<string, Item>> };
+export type Persisted = { settings: Settings; custom: Place[]; extras: Record<string, Item[]>; l1Overrides: Record<string, Record<string, Item>>; cardEdits?: Record<string, Record<string, Item>> };
 
 export async function loadState(): Promise<Partial<Persisted> | null> {
   try {

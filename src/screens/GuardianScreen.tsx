@@ -1,27 +1,76 @@
-import React, { useState } from 'react';
-import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, BackHandler, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import type { Place } from '../types';
 import { l1Indices, l1Items, LEVELS } from '../data';
 import { useL1Count } from '../lib/useL1Count';
 import { applySelection, generateBoardDraft } from '../lib/aiDraft';
 import { useApp } from '../state/AppState';
 import { CardSymbol } from '../components/CardSymbol';
-import { CardForm } from '../components/CardForm';
+import { CardForm, UNSAVED_MSG } from '../components/CardForm';
+import { confirmAsync } from '../lib/confirm';
 import { C } from '../theme';
 
 export function GuardianScreen({ onClose }: { onClose: () => void }) {
-  const { settings, update, places, custom, addPlace, removePlace, addCard, removeCard, extras, setL1Slot, resetL1, l1Overrides, l1For, resetAll, speakWord, showToast } = useApp();
+  const { settings, update, places, custom, addPlace, removePlace, addCard, removeCard, updateCard, restoreCard, resetPlaceCards, baseCount, setL1Slot, resetL1, l1Overrides, l1For, resetAll, speakWord, showToast } = useApp();
   const l1Count = useL1Count();
   const [draftAdding, setDraftAdding] = useState(false);
   const [cardPlaceId, setCardPlaceId] = useState(settings.placeId);
   const cardPlace = places.find((p) => p.id === cardPlaceId) ?? places[0];
-  const cardExtras = extras[cardPlace.id] ?? [];
+  const showL1Options = settings.level === 'L1';
+  const [editing, setEditing] = useState<number | null>(null);
+  const [addDirty, setAddDirty] = useState(false);
+  const [editDirty, setEditDirty] = useState(false);
+  const [draftDirty, setDraftDirty] = useState(false);
   const [prompt, setPrompt] = useState('');
   const [loading, setLoading] = useState(false);
   const [draft, setDraft] = useState<Place | null>(null);
   const [keep, setKeep] = useState<boolean[]>([]);
   const [name, setName] = useState(settings.name);
   const [newPin, setNewPin] = useState('');
+
+  // 저장하지 않은 입력이 있으면 나가기 전에 확인, 없으면 바로 이전 화면으로
+  const dirty = addDirty || editDirty || draftDirty || !!prompt.trim() || !!draft || name.trim() !== settings.name || !!newPin;
+  const leave = useCallback(async () => {
+    if (dirty && !(await confirmAsync('저장하지 않은 내용이 있어요', UNSAVED_MSG, '나가기', '계속 작성'))) return;
+    onClose();
+  }, [dirty, onClose]);
+
+  // 안드로이드 뒤로가기 버튼도 같은 확인을 거침
+  useEffect(() => {
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      void leave();
+      return true;
+    });
+    return () => sub.remove();
+  }, [leave]);
+
+  const deleteCard = async (index: number) => {
+    const it = cardPlace.items[index];
+    const added = index >= baseCount(cardPlace.id);
+    const ok = await confirmAsync(
+      added ? `"${it.w}" 카드를 삭제할까요?` : `"${it.w}" 카드를 숨길까요?`,
+      added ? '삭제하면 되돌릴 수 없어요.' : '기본 카드는 지워지지 않고 숨겨져요. 언제든 다시 보이게 할 수 있어요.',
+      added ? '삭제' : '숨기기',
+    );
+    if (!ok) return;
+    if (editing === index) setEditing(null);
+    const undo = removeCard(cardPlace.id, index);
+    showToast(added ? `"${it.w}" 카드를 삭제했어요` : `"${it.w}" 카드를 숨겼어요`, { label: '되돌리기', onPress: undo });
+  };
+
+  // 이 판의 기본 카드 중 숨기거나 고친 것 (추가한 카드는 제외)
+  const changedCount = cardPlace.items.slice(0, baseCount(cardPlace.id)).filter((it) => it.hidden || it.edited).length;
+  const resetPlace = async () => {
+    const ok = await confirmAsync(
+      `${cardPlace.name} 판을 원래 카드로 되돌릴까요?`,
+      `숨기거나 수정한 기본 카드 ${changedCount}개가 원래대로 돌아가요. 직접 추가한 카드는 그대로 남아요.`,
+      '되돌리기',
+    );
+    if (!ok) return;
+    setEditing(null);
+    const undo = resetPlaceCards(cardPlace.id);
+    showToast(`${cardPlace.name} 판을 원래 카드로 되돌렸어요`, { label: '취소', onPress: undo });
+  };
 
   const generate = async () => {
     const t = prompt.trim();
@@ -53,8 +102,11 @@ export function GuardianScreen({ onClose }: { onClose: () => void }) {
   return (
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#f6f7f9' }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <View style={s.hdr}>
-        <Text style={s.hdrT}>🔒 보호자 모드</Text>
-        <Pressable style={[s.btn, s.ghost]} onPress={onClose}>
+        <Pressable style={[s.btn, s.ghost]} onPress={() => void leave()} accessibilityRole="button" accessibilityLabel="뒤로가기" hitSlop={8}>
+          <Text style={s.btnT}>‹ 뒤로</Text>
+        </Pressable>
+        <Text style={[s.hdrT, { flex: 1, textAlign: 'center' }]}>🔒 보호자 모드</Text>
+        <Pressable style={[s.btn, s.ghost]} onPress={() => void leave()}>
           <Text style={s.btnT}>완료</Text>
         </Pressable>
       </View>
@@ -96,7 +148,9 @@ export function GuardianScreen({ onClose }: { onClose: () => void }) {
                   <CardForm
                     submitLabel="초안에 추가"
                     onCancel={() => setDraftAdding(false)}
-                    l1={{ slots: l1Items(draft, l1Count), place: draft }}
+                    onDirtyChange={setDraftDirty}
+                    place={draft}
+                    l1={showL1Options ? { slots: l1Items(draft, l1Count), place: draft } : undefined}
                     onSubmit={(item, l1) => {
                       const newIndex = draft.items.length;
                       const idx = l1Indices(draft, l1Count);
@@ -129,15 +183,18 @@ export function GuardianScreen({ onClose }: { onClose: () => void }) {
           <Text style={s.lvD}>카드를 추가할 판을 고르세요</Text>
           <View style={s.wrapRow}>
             {places.map((p) => (
-              <Pressable key={p.id} style={[s.pChip, cardPlace.id === p.id && s.pChipOn]} onPress={() => setCardPlaceId(p.id)}>
+              <Pressable key={p.id} style={[s.pChip, cardPlace.id === p.id && s.pChipOn]} onPress={() => { setCardPlaceId(p.id); setEditing(null); }}>
                 <Text style={[{ fontSize: 13 }, cardPlace.id === p.id && { color: '#fff' }]}>{`${p.icon} ${p.name}`}</Text>
               </Pressable>
             ))}
           </View>
           <View style={s.addBox}>
             <CardForm
+              key={`add-${cardPlace.id}`}
               submitLabel={`${cardPlace.name} 판에 추가`}
-              l1={{ slots: l1For(cardPlace, l1Count), place: cardPlace }}
+              onDirtyChange={setAddDirty}
+              place={cardPlace}
+              l1={showL1Options ? { slots: l1For(cardPlace, l1Count), place: cardPlace } : undefined}
               onSubmit={(item, l1) => {
                 addCard(cardPlace.id, item);
                 if (l1) setL1Slot(cardPlace.id, l1.slot, l1.item);
@@ -149,20 +206,68 @@ export function GuardianScreen({ onClose }: { onClose: () => void }) {
               }}
             />
           </View>
-          <Text style={[s.secT, { marginTop: 6, marginBottom: 0 }]}>{`${cardPlace.name} 판에 추가한 카드`}</Text>
-          {cardExtras.length === 0 ? (
-            <Text style={{ fontSize: 13, color: C.sub }}>아직 없어요</Text>
-          ) : (
-            cardExtras.map((it, i) => (
-              <View key={`${i}-${it.w}`} style={s.mine}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 }}><CardSymbol icon={it.i} label={it.w} image={it.image} size={36} /><Text style={{ fontSize: 14, flex: 1 }}>{`${it.w}${it.t === 'n' ? ' (단어)' : ' (표현)'}`}</Text></View>
-                <Pressable onPress={() => removeCard(cardPlace.id, i)} hitSlop={8}>
-                  <Text style={{ color: C.danger, fontSize: 12 }}>삭제</Text>
-                </Pressable>
+          <Text style={[s.secT, { marginTop: 6, marginBottom: 0 }]}>{`${cardPlace.name} 판 카드 (${cardPlace.items.length}개)`}</Text>
+          <Text style={s.hint}>추가한 카드는 수정·삭제, 기본 카드는 수정·숨기기를 할 수 있어요.</Text>
+          {cardPlace.items.map((it, i) => {
+            const added = i >= baseCount(cardPlace.id);
+            const tag = it.hidden ? '숨김' : added ? '추가함' : it.edited ? '수정함' : '';
+            return (
+              <View key={`card-${cardPlace.id}-${i}`}>
+                <View style={[s.mine, it.hidden && { opacity: 0.5 }]}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 }}>
+                    <CardSymbol icon={it.i} label={it.w} image={it.image} size={36} />
+                    <Text style={{ fontSize: 14, flex: 1 }}>{`${it.w}${it.t === 'n' ? ' (단어)' : ' (표현)'}${tag ? `  · ${tag}` : ''}`}</Text>
+                  </View>
+                  <View style={s.acts}>
+                    {it.hidden ? (
+                      <Pressable onPress={() => restoreCard(cardPlace.id, i)} hitSlop={8}>
+                        <Text style={s.actT}>다시 보이기</Text>
+                      </Pressable>
+                    ) : (
+                      <>
+                        {!added && it.edited && (
+                          <Pressable onPress={() => restoreCard(cardPlace.id, i)} hitSlop={8}>
+                            <Text style={s.actT}>원래대로</Text>
+                          </Pressable>
+                        )}
+                        <Pressable onPress={() => setEditing(editing === i ? null : i)} hitSlop={8} disabled={editing !== null && editing !== i}>
+                          <Text style={[s.actT, editing !== null && editing !== i && { opacity: 0.3 }]}>{editing === i ? '닫기' : '수정'}</Text>
+                        </Pressable>
+                        <Pressable onPress={() => void deleteCard(i)} hitSlop={8}>
+                          <Text style={[s.actT, { color: C.danger }]}>{added ? '삭제' : '숨기기'}</Text>
+                        </Pressable>
+                      </>
+                    )}
+                  </View>
+                </View>
+                {editing === i && (
+                  <View style={[s.addBox, { marginTop: 4 }]}>
+                    <CardForm
+                      key={`edit-${cardPlace.id}-${i}`}
+                      initial={it}
+                      submitLabel="수정 저장"
+                      onDirtyChange={setEditDirty}
+                      place={cardPlace}
+                      onCancel={() => setEditing(null)}
+                      onSubmit={(item) => {
+                        updateCard(cardPlace.id, i, item);
+                        setEditing(null);
+                        showToast(`"${item.w}" 카드를 수정했어요`);
+                      }}
+                    />
+                  </View>
+                )}
               </View>
-            ))
+            );
+          })}
+          {changedCount > 0 && (
+            <Pressable style={[s.btn, s.ghost, { marginTop: 6 }]} onPress={() => void resetPlace()}>
+              <Text style={s.btnT}>{`${cardPlace.name} 판 원래 카드로 되돌리기 (${changedCount}개)`}</Text>
+            </Pressable>
           )}
 
+          {showL1Options && (
+            <>
           <Text style={[s.secT, { marginTop: 10, marginBottom: 0 }]}>{`${cardPlace.name} L1 칸 (${l1Count}칸, 위치 고정)`}</Text>
           {l1For(cardPlace, l1Count).map((it, i) => {
             const changed = !!l1Overrides[cardPlace.id]?.[String(i)];
@@ -185,9 +290,11 @@ export function GuardianScreen({ onClose }: { onClose: () => void }) {
               <Text style={s.btnT}>L1 칸 모두 기본값으로</Text>
             </Pressable>
           )}
+            </>
+          )}
         </Section>
 
-        <Section title="지금 장소 (L1 화면에 표시)">
+        <Section title={showL1Options ? '지금 장소 (L1 화면에 표시)' : '지금 장소'}>
           <View style={s.wrapRow}>
             {places.map((p) => (
               <Pressable key={p.id} style={[s.pChip, settings.placeId === p.id && s.pChipOn]} onPress={() => update({ placeId: p.id })}>
@@ -212,9 +319,11 @@ export function GuardianScreen({ onClose }: { onClose: () => void }) {
           )}
         </Section>
 
-        <Section title="이름 (L3 문장에 사용, 기기에만 저장)">
+        {settings.level === 'L3' && (
+          <Section title="이름 (L3 문장에 사용, 기기에만 저장)">
           <TextInput value={name} onChangeText={setName} onEndEditing={() => update({ name: name.trim() })} placeholder="예: 김하늘" style={s.txt} />
         </Section>
+        )}
 
         <Section title="말하기 속도">
           <View style={s.row}>
@@ -255,13 +364,16 @@ export function GuardianScreen({ onClose }: { onClose: () => void }) {
         <Pressable
           style={[s.btn, s.ghost]}
           onPress={() =>
-            Alert.alert('초기화', '설정과 만든 판을 모두 지울까요?', [
-              { text: '취소', style: 'cancel' },
-              { text: '초기화', style: 'destructive', onPress: () => resetAll().then(() => setName('')) },
-            ])
+            void confirmAsync(
+              '처음 설치 상태로 초기화할까요?',
+              '추가·수정한 카드, 숨긴 카드, 만든 판, L1 칸, 이름·PIN·속도 설정이 모두 지워지고 앱을 처음 설치했을 때로 돌아가요. 되돌릴 수 없어요.',
+              '초기화',
+            ).then((ok) => {
+              if (ok) void resetAll().then(() => setName(''));
+            })
           }
         >
-          <Text style={s.btnT}>전체 초기화</Text>
+          <Text style={s.btnT}>처음 상태로 초기화</Text>
         </Pressable>
         <Text style={s.lvD}>기본 그림: OpenMoji · CC BY-SA 4.0 · openmoji.org (원본 그대로 사용). 임상 검증된 AAC 상징 세트는 아니며, 사용자가 그림의 뜻을 이해하는지 확인해 주세요.</Text>
       </ScrollView>
@@ -279,6 +391,8 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 }
 
 const s = StyleSheet.create({
+  acts: { flexDirection: 'row', gap: 14, alignItems: 'center' },
+  actT: { color: C.primary, fontSize: 13, fontWeight: '600' },
   hdr: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 14 },
   hdrT: { fontSize: 18, fontWeight: '800' },
   sec: { backgroundColor: '#fff', borderRadius: 14, padding: 12 },

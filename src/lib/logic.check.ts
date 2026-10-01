@@ -1,8 +1,9 @@
 /* 핵심 로직 점검 스크립트: npm run check:logic */
 import { compose, iga } from './korean';
-import { BUILTIN_PLACES, l1Items, N, OPTS, P, suggestL1Sentence } from '../data';
+import { BUILTIN_PLACES, l1Items, N, nounExample, OPTS, P, suggestL1Sentence } from '../data';
 import { applySelection, draftFromText, extractPlaceName } from './aiDraft';
 import { mapHeard } from './heard';
+import { mergePlace, visibleItems } from './cardEdits';
 
 let fail = 0;
 const eq = (name: string, got: unknown, want: unknown) => {
@@ -58,6 +59,31 @@ eq('선택 후 L1 유효', sel.l1.every((i) => i < sel.items.length) && sel.l1.l
 eq('들은말 언제', mapHeard('언제부터 아팠어요?'), 'time');
 eq('들은말 봉투', mapHeard('봉투 필요하세요?'), 'yesno');
 eq('들은말 결제', mapHeard('결제는 어떻게 하세요?'), 'pay');
+
+{
+  // 카드 수정·숨김 (원본은 그대로, 덮어쓰기만)
+  const h = BUILTIN_PLACES[0];
+  const n = h.items.length;
+  const foot = { ...N('🦶', '발'), added: true };
+  const edited = mergePlace(h, { '1': { ...h.items[1], w: '배꼽', edited: true } }, [foot]);
+  eq('수정: 원래 카드 덮어쓰기', edited.items[1].w, '배꼽');
+  eq('수정: 원본 데이터 유지', h.items[1].w !== '배꼽', true);
+  eq('수정: 추가 카드는 뒤에', edited.items[n].w, '발');
+  const hidden = mergePlace(h, { '0': { ...h.items[0], hidden: true } });
+  eq('숨김: L2 목록에서 제외', visibleItems(hidden).length, n - 1);
+  const before = l1Items(h).map((x) => x.w);
+  const firstL1 = h.items.indexOf(l1Items(h)[0]);
+  const hid2 = mergePlace(h, { [String(firstL1)]: { ...h.items[firstL1], hidden: true } });
+  const after = l1Items(hid2).map((x) => x.w);
+  eq('숨김: L1 6칸 유지', after.length, 6);
+  eq('숨김: L1 숨긴 카드 없음', after.includes(before[0]), false);
+  eq('숨김: L1 나머지 칸 위치 그대로', after.slice(1), before.slice(1));
+}
+
+eq('예시: 병원 화장실은 아파요 안 붙임', nounExample('화장실', BUILTIN_PLACES[0]), null);
+eq('예시: 병원 손은 아파요', nounExample('손', BUILTIN_PLACES[0]), '손이 아파요');
+eq('예시: 식당 수저는 주세요', nounExample('숟가락', BUILTIN_PLACES[1]), '숟가락 주세요');
+eq('L1 추천: 병원 화장실 단어는 단어 그대로', suggestL1Sentence(N('🚻', '화장실'), BUILTIN_PLACES[0]), '화장실');
 
 if (fail) {
   console.log(`\n${fail} failed`);
