@@ -118,10 +118,29 @@ export function l1Items(place: Place, count = 6): Item[] {
 }
 
 /** L1 칸에 넣을 때 말할 완성 문장 추천 (단어 카드는 문장으로 만들어 줌) */
+// 신체 부위 (예시 문장에서 "~이/가 아파요"를 붙여도 되는 단어)
+const BODY_WORDS = new Set([...BODY.map((b) => b.w), '손', '손가락', '발가락', '입', '혀', '잇몸', '어깨', '허리', '무릎', '엉덩이', '얼굴', '피부', '목구멍']);
+export const isBodyWord = (w: string) => BODY_WORDS.has(w.trim());
+
+/**
+ * 단어 카드를 이 판에서 자연스럽게 쓰는 예시 문장. 말이 안 되는 조합은 만들지 않음.
+ * - 신체 부위 + 판에 "아파요"가 있음 → "발이 아파요"
+ * - 판에 "주세요"가 있음 → "물 주세요"
+ * - 그 외 → null (단어만 말함)
+ */
+export function nounExample(w: string, place?: Place): string | null {
+  const word = w.trim();
+  if (!word || !place) return null;
+  const preds = place.items.filter((x) => x.t === 'p' && !x.hidden);
+  if (isBodyWord(word) && (preds.some((x) => x.body) || place.asks.some((a) => a.o === 'body'))) return `${iga(word)} 아파요`;
+  if (preds.some((x) => x.w === '주세요' && x.j === 'obj')) return `${word} 주세요`;
+  return null;
+}
+
+/** L1 칸에 넣을 때 말할 완성 문장 추천 (단어 카드는 자연스러운 문장이 있을 때만 문장으로) */
 export function suggestL1Sentence(item: Item, place: Place): string {
   if (item.t === 'p') return item.s;
-  const bodyContext = place.asks.some((a) => a.o === 'body');
-  return bodyContext ? `${iga(item.w)} 아파요` : `${item.w} 주세요`;
+  return nounExample(item.w, place) ?? item.s;
 }
 
 export function asksWithDefaults(place: Place): Ask[] {

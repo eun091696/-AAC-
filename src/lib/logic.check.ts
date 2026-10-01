@@ -1,6 +1,6 @@
 /* 핵심 로직 점검 스크립트: npm run check:logic */
 import { compose, iga } from './korean';
-import { BUILTIN_PLACES, l1Items, N, OPTS, P, suggestL1Sentence } from '../data';
+import { BUILTIN_PLACES, l1Items, N, nounExample, OPTS, P, suggestL1Sentence } from '../data';
 import { applySelection, draftFromText, extractPlaceName } from './aiDraft';
 import { mapHeard } from './heard';
 import { mergePlace, visibleItems } from './cardEdits';
@@ -79,6 +79,11 @@ eq('들은말 결제', mapHeard('결제는 어떻게 하세요?'), 'pay');
   eq('숨김: L1 숨긴 카드 없음', after.includes(before[0]), false);
   eq('숨김: L1 나머지 칸 위치 그대로', after.slice(1), before.slice(1));
 }
+
+eq('예시: 병원 화장실은 아파요 안 붙임', nounExample('화장실', BUILTIN_PLACES[0]), null);
+eq('예시: 병원 손은 아파요', nounExample('손', BUILTIN_PLACES[0]), '손이 아파요');
+eq('예시: 식당 수저는 주세요', nounExample('숟가락', BUILTIN_PLACES[1]), '숟가락 주세요');
+eq('L1 추천: 병원 화장실 단어는 단어 그대로', suggestL1Sentence(N('🚻', '화장실'), BUILTIN_PLACES[0]), '화장실');
 
 if (fail) {
   console.log(`\n${fail} failed`);

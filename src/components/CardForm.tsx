@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import type { CardImage, Item, Place } from '../types';
-import { N, P, suggestL1Sentence } from '../data';
-import { compose } from '../lib/korean';
+import { N, nounExample, P, suggestL1Sentence } from '../data';
+import { iga } from '../lib/korean';
 import { CardSymbol } from './CardSymbol';
 import { findCardImage, generateCardImage, imageServerConfigured } from '../lib/cardImages';
 import { C } from '../theme';
@@ -18,6 +18,8 @@ type Props = {
   submitLabel?: string;
   /** 주면 "L1 화면에도 보이기" 옵션이 나타남. slots: 지금 L1 칸 목록 */
   l1?: { slots: Item[]; place: Place };
+  /** 예시 문장을 만들 때 쓰는 판 (이 판에 있는 표현과 자연스럽게 이어지는 예만 보여줌) */
+  place?: Place;
   /** 주면 수정 모드: 이 카드 값으로 채워서 시작 */
   initial?: Item;
   /** 저장 안 한 입력이 있는지 부모에게 알림 (뒤로가기 확인용) */
@@ -27,11 +29,8 @@ type Props = {
 const UNSAVED_TITLE = '저장하지 않은 내용이 있어요';
 export const UNSAVED_MSG = '입력한 내용이 저장되지 않았어요. 정말 취소할까요?';
 
-const SAMPLE_NOUN = N('', '배');
-const SAMPLE_PRED = P('', '아파요', '아파요', 'iga');
-
 /** 카드(버튼) 1개를 만드는 입력 폼. 홈 화면, 보호자 모드, 판 초안에서 공통 사용 */
-export function CardForm({ onSubmit, onCancel, submitLabel = '카드 추가', l1, initial, onDirtyChange }: Props) {
+export function CardForm({ onSubmit, onCancel, submitLabel = '카드 추가', l1, place, initial, onDirtyChange }: Props) {
   const initSentence = initial?.t === 'p' && initial.s !== initial.w ? initial.s : '';
   const initJoin: Join = initial?.j ?? 'none';
   const [generated, setGenerated] = useState<{ key: string; image: CardImage } | null>(
@@ -111,7 +110,18 @@ export function CardForm({ onSubmit, onCancel, submitLabel = '카드 추가', l1
     onCancel();
   };
   const item = build();
-  const preview = !item ? '' : item.t === 'n' ? compose([item, SAMPLE_PRED]) : item.j ? compose([SAMPLE_NOUN, item]) : item.s;
+  // 말하는 예: 실제로 누르면 나오는 말 + (자연스러운 경우만) 이어 붙인 예
+  const ctxPlace = place ?? l1?.place;
+  const preview = !item
+    ? ''
+    : item.t === 'n'
+      ? (() => {
+          const ex = nounExample(item.w, ctxPlace);
+          return ex ? `"${item.s}"\n이어서 쓰면: "${ex}"` : `"${item.s}"\n(뒤에 표현 카드를 누르면 이어서 문장이 돼요)`;
+        })()
+      : item.j
+        ? `"${item.s}"\n앞에 단어를 누르면: "${item.j === 'iga' ? iga('○○') : '○○'} ${item.s}"`
+        : `"${item.s}"`;
   const l1Suggest = item && l1 ? suggestL1Sentence(item, l1.place) : '';
   const l1Sentence = l1Text.trim() || l1Suggest;
 
@@ -230,7 +240,7 @@ export function CardForm({ onSubmit, onCancel, submitLabel = '카드 추가', l1
         </>
       )}
 
-      {preview ? <Text style={s.preview}>{`말하는 예: "${preview}"${showL1 && l1Sentence ? `\nL1에서: "${l1Sentence}"` : ''}`}</Text> : null}
+      {preview ? <Text style={s.preview}>{`말하는 예: ${preview}${showL1 && l1Sentence ? `\nL1에서: "${l1Sentence}"` : ''}`}</Text> : null}
       {error ? <Text style={s.error}>{error}</Text> : null}
 
       <View style={s.row}>

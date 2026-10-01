@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Text } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { useApp } from '../state/AppState';
 import { CardForm, UNSAVED_MSG } from './CardForm';
 import { confirmAsync } from '../lib/confirm';
@@ -18,7 +18,9 @@ export function AddCardModal({ visible, onClose }: { visible: boolean; onClose: 
   };
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={() => void requestClose()}>
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+      {/* Modal은 별도 화면이라 안전 영역 정보를 다시 받아야 상단(상태바)에 안 가려짐 */}
+      <SafeAreaProvider>
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }} edges={['top', 'bottom']}>
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <ScrollView contentContainerStyle={{ padding: 16, gap: 8 }} keyboardShouldPersistTaps="handled">
             <Text style={s.t}>{`${place.icon} ${place.name} 판에 카드 추가`}</Text>
@@ -26,6 +28,7 @@ export function AddCardModal({ visible, onClose }: { visible: boolean; onClose: 
             <CardForm
               onCancel={onClose}
               onDirtyChange={setDirty}
+              place={place}
               l1={settings.level === 'L1' ? { slots: l1For(place, l1Count), place } : undefined}
               onSubmit={(item, l1) => {
                 addCard(place.id, item);
@@ -37,6 +40,7 @@ export function AddCardModal({ visible, onClose }: { visible: boolean; onClose: 
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
+      </SafeAreaProvider>
     </Modal>
   );
 }

@@ -16,7 +16,7 @@ import { Toast } from './components/Toast';
 type Screen = 'home' | 'show' | 'guardian';
 
 export function Root() {
-  const { ready, say, toast } = useApp();
+  const { ready, say, toast, runToastAction } = useApp();
   const [screen, setScreen] = useState<Screen>('home');
   const [showText, setShowText] = useState('');
   const [ask, setAsk] = useState<AskState | null>(null);
@@ -70,7 +70,7 @@ export function Root() {
         }}
       />
       <AddCardModal visible={addCardOpen} onClose={() => setAddCardOpen(false)} />
-      <Toast text={toast} />
+      <Toast toast={toast} onAction={runToastAction} />
     </SafeAreaView>
   );
 }
