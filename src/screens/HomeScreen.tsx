@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { FlatList, Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
 import type { Item, Opt } from '../types';
 import { CORE, GEN_PRED, OPTS } from '../data';
@@ -23,6 +23,7 @@ export function HomeScreen({ onShow, onGuardian, onAddCard, onAsk }: Props) {
   const { width } = useWindowDimensions();
   const L = settings.level;
   const [chips, setChips] = useState<Item[]>([]);
+  const chipScroll = useRef<ScrollView>(null);
   const [text, setText] = useState('');
 
   const composed = compose(chips);
@@ -38,7 +39,7 @@ export function HomeScreen({ onShow, onGuardian, onAddCard, onAsk }: Props) {
 
   const core = CORE[L];
   const coreIcon = L === 'L1' ? 30 : 20;
-  const coreLabel = L === 'L1' ? 15 : L === 'L2' ? 11 : 13;
+  const coreLabel = L === 'L1' ? 15 : L === 'L2' ? 12 : 13;
 
   return (
     <View style={s.wrap}>
@@ -61,7 +62,7 @@ export function HomeScreen({ onShow, onGuardian, onAddCard, onAsk }: Props) {
             variant={c.tone ?? 'core'}
             iconSize={coreIcon}
             labelSize={coreLabel}
-            style={{ minHeight: L === 'L1' ? 72 : 52 }}
+            style={{ minHeight: L === 'L1' ? 96 : 76 }}
             onPress={() => onCore(c)}
           />
         ))}
@@ -71,11 +72,19 @@ export function HomeScreen({ onShow, onGuardian, onAddCard, onAsk }: Props) {
       {L === 'L2' && (
         <View style={s.strip}>
           <View style={s.stripRow}>
-            <ScrollView style={s.chipsScroll} contentContainerStyle={s.chips} nestedScrollEnabled>
+            <ScrollView
+              ref={chipScroll}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={s.chipsScroll}
+              contentContainerStyle={s.chips}
+              // 카드를 고르면 방금 고른 카드(맨 오른쪽)가 보이게
+              onContentSizeChange={() => chipScroll.current?.scrollToEnd({ animated: true })}
+            >
               {chips.length ? (
                 chips.map((c, i) => (
                   <Pressable key={i} style={s.chip} onPress={() => setChips(chips.filter((_, k) => k !== i))}>
-                    <Text style={s.chipT}>{`${c.i} ${c.w}`}</Text>
+                    <Text style={s.chipT}>{c.w}</Text>
                   </Pressable>
                 ))
               ) : (
@@ -128,12 +137,14 @@ export function HomeScreen({ onShow, onGuardian, onAddCard, onAsk }: Props) {
         <Grid<Item | null>
           data={[...visibleItems(place), null]}
           cols={tablet ? 4 : 3}
-          rowHeight={tablet ? 110 : 88}
+          // 실제 칸 너비만큼 그림 + 글자 한 줄: 그림이 칸을 꽉 채우게
+          squareExtra={30}
           renderItem={(it) =>
             it ? (
               <SymbolButton
                 icon={it.i} image={it.image}
                 label={it.w}
+                labelSize={15}
                 onPress={() => {
                   setChips([...chips, it]);
                   speakWord(it.w);
@@ -199,9 +210,9 @@ const s = StyleSheet.create({
   core: { flexDirection: 'row', gap: 6, padding: 8, backgroundColor: C.core, borderBottomWidth: 2, borderColor: C.coreLine },
   strip: { marginHorizontal: 10, marginTop: 8, borderWidth: 2, borderStyle: 'dashed', borderColor: '#9bb3e8', borderRadius: 12, padding: 8 },
   stripRow: { flexDirection: 'row', alignItems: 'center', minHeight: 32, gap: 6 },
-  // 칩이 많아도 3줄 정도까지만 커지고 그 안에서 스크롤
-  chipsScroll: { flex: 1, maxHeight: 100 },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 4 },
+  // 고른 카드는 한 줄로 고정, 많으면 좌우로 스크롤 (아래 카드 목록이 밀리지 않음)
+  chipsScroll: { flex: 1, flexGrow: 1 },
+  chips: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   chip: { backgroundColor: C.primarySoft, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 5 },
   chipT: { fontSize: 13, color: C.text },
   ph: { fontSize: 12, color: '#999' },

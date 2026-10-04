@@ -9,10 +9,14 @@ type Props<T> = {
   /** true: 화면을 꽉 채움(L1), false: 고정 행 높이 + 스크롤(L2) */
   fill?: boolean;
   rowHeight?: number;
+  /** 주면 칸 높이 = 실제 칸 너비 + 이 값 (그림이 정사각형으로 꽉 차게) */
+  squareExtra?: number;
   gap?: number;
 };
 
-export function Grid<T>({ data, cols, renderItem, fill, rowHeight = 88, gap = 8 }: Props<T>) {
+export function Grid<T>({ data, cols, renderItem, fill, rowHeight: fixedRow = 88, squareExtra, gap = 8 }: Props<T>) {
+  const [gridW, setGridW] = useState(0);
+  const rowHeight = squareExtra !== undefined && gridW ? Math.round((gridW - 20 - gap * (cols - 1)) / cols) + squareExtra : fixedRow;
   const rows: T[][] = [];
   for (let i = 0; i < data.length; i += cols) rows.push(data.slice(i, i + cols));
 
@@ -30,7 +34,7 @@ export function Grid<T>({ data, cols, renderItem, fill, rowHeight = 88, gap = 8 
   ));
 
   if (fill) return <View style={{ flex: 1, gap, padding: 10 }}>{content}</View>;
-  return <ScrollGrid gap={gap}>{content}</ScrollGrid>;
+  return <View style={{ flex: 1 }} onLayout={(e) => setGridW(e.nativeEvent.layout.width)}><ScrollGrid gap={gap}>{content}</ScrollGrid></View>;
 }
 
 /** 스크롤 목록 + 조금 내려가면 오른쪽 아래에 "맨 위로" 버튼 */

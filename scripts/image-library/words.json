@@ -1,0 +1,540 @@
+{
+  "_comment": "그림 라이브러리 생성 대상. 스타일 규칙: 간단한 픽토그램, 물건은 물건만(사람 없음), 신체 부위는 해당 부위를 빨갛게 강조, 표현은 인물 하나 + 필요하면 보편 기호 하나(금지 표시 등), 글자·숫자·화폐 기호 금지. 명사 meaning은 shared/visualConcepts.json과 같아야 함(비우면 자동).",
+  "words": [
+    {
+      "label": "머리",
+      "kind": "n",
+      "batch": 1,
+      "boards": [
+        "hospital"
+      ],
+      "scene": "a simple round-headed figure, front view, with the head highlighted in bright red; everything else plain"
+    },
+    {
+      "label": "배",
+      "kind": "n",
+      "meaning": "몸의 배(복부)",
+      "scene": "a simple round-headed figure, front view, with the belly highlighted in bright red; everything else plain",
+      "batch": 1,
+      "boards": [
+        "hospital"
+      ]
+    },
+    {
+      "label": "목",
+      "kind": "n",
+      "batch": 1,
+      "boards": [
+        "hospital"
+      ],
+      "scene": "a simple round-headed figure, front view, with the neck and throat highlighted in bright red; everything else plain"
+    },
+    {
+      "label": "눈",
+      "kind": "n",
+      "meaning": "보는 눈(신체기관)",
+      "scene": "one big simple open eye",
+      "batch": 1,
+      "boards": [
+        "body"
+      ]
+    },
+    {
+      "label": "귀",
+      "kind": "n",
+      "batch": 1,
+      "boards": [
+        "body"
+      ],
+      "scene": "one big simple ear, side view"
+    },
+    {
+      "label": "코",
+      "kind": "n",
+      "batch": 1,
+      "boards": [
+        "body"
+      ],
+      "scene": "one big simple nose"
+    },
+    {
+      "label": "이",
+      "kind": "n",
+      "meaning": "입 안의 이(치아)",
+      "scene": "one big simple white tooth",
+      "batch": 1,
+      "boards": [
+        "body"
+      ]
+    },
+    {
+      "label": "가슴",
+      "kind": "n",
+      "batch": 1,
+      "boards": [
+        "body"
+      ],
+      "scene": "a simple round-headed figure, front view, with the upper chest area highlighted in bright red; no heart symbol"
+    },
+    {
+      "label": "팔",
+      "kind": "n",
+      "batch": 1,
+      "boards": [
+        "body"
+      ],
+      "scene": "a simple round-headed figure, front view, with the arm highlighted in bright red; everything else plain"
+    },
+    {
+      "label": "다리",
+      "kind": "n",
+      "meaning": "사람의 신체 부위 다리",
+      "scene": "a simple round-headed figure, front view, with the legs highlighted in bright red; everything else plain",
+      "batch": 1,
+      "boards": [
+        "body"
+      ]
+    },
+    {
+      "label": "발",
+      "kind": "n",
+      "batch": 1,
+      "boards": [
+        "body"
+      ],
+      "scene": "one simple bare foot, side view"
+    },
+    {
+      "label": "등",
+      "kind": "n",
+      "meaning": "사람의 신체 부위 등",
+      "scene": "a simple round-headed figure seen from behind, with the back highlighted in bright red",
+      "batch": 1,
+      "boards": [
+        "body"
+      ]
+    },
+    {
+      "label": "물",
+      "kind": "n",
+      "batch": 1,
+      "boards": [
+        "restaurant"
+      ],
+      "scene": "one clear glass filled with blue drinking water"
+    },
+    {
+      "label": "숟가락",
+      "kind": "n",
+      "batch": 1,
+      "boards": [
+        "restaurant"
+      ],
+      "scene": "one simple silver spoon"
+    },
+    {
+      "label": "젓가락",
+      "kind": "n",
+      "batch": 1,
+      "boards": [
+        "restaurant"
+      ],
+      "scene": "one pair of simple chopsticks"
+    },
+    {
+      "label": "음료수",
+      "kind": "n",
+      "batch": 1,
+      "boards": [
+        "store"
+      ],
+      "scene": "one simple drink can and one plastic drink bottle side by side"
+    },
+    {
+      "label": "삼각김밥",
+      "kind": "n",
+      "batch": 1,
+      "boards": [
+        "store"
+      ],
+      "scene": "one triangle-shaped rice ball wrapped in a strip of black seaweed"
+    },
+    {
+      "label": "라면",
+      "kind": "n",
+      "batch": 1,
+      "boards": [
+        "store"
+      ],
+      "scene": "one bowl of ramen noodles with steam lines"
+    },
+    {
+      "label": "문구",
+      "kind": "n",
+      "batch": 1,
+      "boards": [
+        "daiso"
+      ],
+      "scene": "one pencil and one notebook"
+    },
+    {
+      "label": "청소용품",
+      "kind": "n",
+      "batch": 1,
+      "boards": [
+        "daiso"
+      ],
+      "scene": "one broom and one spray bottle"
+    },
+    {
+      "label": "주방용품",
+      "kind": "n",
+      "batch": 1,
+      "boards": [
+        "daiso"
+      ],
+      "scene": "one cooking pot and one ladle"
+    },
+    {
+      "label": "선물",
+      "kind": "n",
+      "batch": 1,
+      "boards": [
+        "daiso"
+      ],
+      "scene": "one wrapped gift box with a ribbon bow"
+    },
+    {
+      "label": "네",
+      "kind": "p",
+      "meaning": "동의하며 고개를 끄덕이는 모습",
+      "scene": "only one big green circle with a thick white check mark inside; no person, no face, no hand",
+      "batch": 1,
+      "boards": [
+        "core"
+      ]
+    },
+    {
+      "label": "아니요",
+      "kind": "p",
+      "meaning": "거절하며 손바닥을 내밀고 고개를 젓는 모습",
+      "scene": "only one big red circle with a thick white X inside; no person, no face, no hand",
+      "batch": 1,
+      "boards": [
+        "core"
+      ]
+    },
+    {
+      "label": "도와줘요",
+      "kind": "p",
+      "meaning": "도움을 요청하며 한 손을 드는 모습",
+      "scene": "a figure raising one hand high to ask for help",
+      "batch": 1,
+      "boards": [
+        "core"
+      ]
+    },
+    {
+      "label": "잠시만요",
+      "kind": "p",
+      "meaning": "잠깐 기다려 달라고 손바닥을 보이는 모습",
+      "scene": "a figure holding up one index finger, meaning wait one moment, with a small simple clock next to it",
+      "batch": 1,
+      "boards": [
+        "core"
+      ]
+    },
+    {
+      "label": "아파요",
+      "kind": "p",
+      "meaning": "어딘가 아파서 얼굴을 찡그린 모습 (특정 부위 없음)",
+      "scene": "the face of a round-headed figure with squeezed shut eyes and a frowning mouth, short red pain lines around the face; face only, no hands",
+      "batch": 1,
+      "boards": [
+        "hospital"
+      ]
+    },
+    {
+      "label": "무서워요",
+      "kind": "p",
+      "meaning": "겁이 나서 몸을 움츠린 모습",
+      "scene": "the face of a round-headed figure with wide scared eyes and a small open trembling mouth, a few blue sweat drops; face only",
+      "batch": 1,
+      "boards": [
+        "hospital"
+      ]
+    },
+    {
+      "label": "주사 싫어요",
+      "kind": "p",
+      "meaning": "주사기를 보고 고개를 돌리며 싫다고 하는 모습",
+      "scene": "one syringe with a big red prohibition sign (red circle with diagonal slash) over it",
+      "batch": 1,
+      "boards": [
+        "hospital"
+      ]
+    },
+    {
+      "label": "얼마나 걸려요?",
+      "kind": "p",
+      "meaning": "손목시계를 보며 기다리는 모습",
+      "scene": "only one simple hourglass and one single big question mark; no person, no clock",
+      "batch": 1,
+      "boards": [
+        "hospital"
+      ]
+    },
+    {
+      "label": "다시 말해줘요",
+      "kind": "p",
+      "meaning": "잘 못 들어서 귀에 손을 대고 다시 듣는 모습",
+      "scene": "a figure cupping one hand behind its ear to listen, with a curved repeat arrow",
+      "batch": 1,
+      "boards": [
+        "hospital"
+      ]
+    },
+    {
+      "label": "천천히요",
+      "kind": "p",
+      "meaning": "천천히 해 달라고 두 손바닥을 아래로 내리는 모습",
+      "scene": "one simple green turtle",
+      "batch": 1,
+      "boards": [
+        "hospital"
+      ]
+    },
+    {
+      "label": "보호자 불러요",
+      "kind": "p",
+      "meaning": "옆 사람에게 가족을 불러 달라고 휴대폰을 건네는 모습",
+      "scene": "a figure holding a phone to its ear, calling",
+      "batch": 1,
+      "boards": [
+        "hospital"
+      ]
+    },
+    {
+      "label": "쉬고 싶어요",
+      "kind": "p",
+      "meaning": "지쳐서 의자에 앉아 쉬는 모습",
+      "scene": "a figure sitting relaxed in a chair with closed eyes, resting",
+      "batch": 1,
+      "boards": [
+        "hospital"
+      ]
+    },
+    {
+      "label": "집에 가요",
+      "kind": "p",
+      "meaning": "집 현관문으로 들어가는 모습",
+      "scene": "one simple house with a figure walking toward its door",
+      "batch": 1,
+      "boards": [
+        "hospital"
+      ]
+    },
+    {
+      "label": "화장실",
+      "kind": "p",
+      "meaning": "화장실 문 앞에 서 있는 모습",
+      "scene": "only one simple white toilet; no person",
+      "batch": 1,
+      "boards": [
+        "hospital",
+        "restaurant"
+      ]
+    },
+    {
+      "label": "이거 주세요",
+      "kind": "p",
+      "meaning": "원하는 물건을 손가락으로 가리키는 모습",
+      "scene": "one hand with the index finger pointing at one simple item",
+      "batch": 1,
+      "boards": [
+        "restaurant"
+      ]
+    },
+    {
+      "label": "주세요",
+      "kind": "p",
+      "meaning": "두 손을 내밀어 받으려는 모습",
+      "scene": "two open hands held out together, palms up, ready to receive",
+      "batch": 1,
+      "boards": [
+        "restaurant"
+      ]
+    },
+    {
+      "label": "안 매운 거",
+      "kind": "p",
+      "meaning": "빨간 고추를 보며 손을 저어 거절하는 모습",
+      "scene": "only one red chili pepper with a big red prohibition sign (red circle with one diagonal slash) over it; no person",
+      "batch": 1,
+      "boards": [
+        "restaurant"
+      ]
+    },
+    {
+      "label": "빼 주세요",
+      "kind": "p",
+      "meaning": "접시에서 재료 하나를 옆으로 밀어내는 모습",
+      "scene": "one green onion piece with a big red prohibition sign over it",
+      "batch": 1,
+      "boards": [
+        "restaurant"
+      ]
+    },
+    {
+      "label": "맛있어요",
+      "kind": "p",
+      "meaning": "음식을 먹고 만족스러워하는 모습",
+      "scene": "the face of a round-headed figure smiling happily and licking its lips; face only",
+      "batch": 1,
+      "boards": [
+        "restaurant"
+      ]
+    },
+    {
+      "label": "포장해요",
+      "kind": "p",
+      "meaning": "음식을 포장 용기에 담아 봉투에 넣는 모습",
+      "scene": "one paper takeout bag with a food box inside",
+      "batch": 1,
+      "boards": [
+        "restaurant"
+      ]
+    },
+    {
+      "label": "계산할게요",
+      "kind": "p",
+      "meaning": "계산대에서 돈을 내는 모습",
+      "scene": "one hand handing a plain card toward a simple cash register",
+      "batch": 1,
+      "boards": [
+        "restaurant"
+      ]
+    },
+    {
+      "label": "시끄러워요",
+      "kind": "p",
+      "meaning": "시끄러워서 두 손으로 귀를 막는 모습",
+      "scene": "a figure covering both ears with its hands, with sound wave lines around it",
+      "batch": 1,
+      "boards": [
+        "restaurant"
+      ]
+    },
+    {
+      "label": "찾고 있어요",
+      "kind": "p",
+      "meaning": "가게 진열대에서 물건을 찾는 모습",
+      "scene": "one big magnifying glass",
+      "batch": 1,
+      "boards": [
+        "store"
+      ]
+    },
+    {
+      "label": "얼마예요?",
+      "kind": "p",
+      "meaning": "물건을 들고 가격표를 보는 모습",
+      "scene": "only one big gold coin with the number \"100\" on it, and one single big question mark next to it; no person",
+      "batch": 1,
+      "boards": [
+        "store"
+      ],
+      "extra": "Exception for this card only: the number \"100\" must be clearly printed on the coin. No other text."
+    },
+    {
+      "label": "데워 주세요",
+      "kind": "p",
+      "meaning": "전자레인지에 음식을 넣어 데우는 모습",
+      "scene": "one microwave oven with red heat waves",
+      "batch": 1,
+      "boards": [
+        "store"
+      ]
+    },
+    {
+      "label": "봉투 주세요",
+      "kind": "p",
+      "meaning": "계산대에서 비닐봉투를 받는 모습",
+      "scene": "one simple plastic shopping bag",
+      "batch": 1,
+      "boards": [
+        "store"
+      ]
+    },
+    {
+      "label": "카드로 할게요",
+      "kind": "p",
+      "meaning": "카드 단말기에 카드를 꽂아 결제하는 모습",
+      "scene": "one plain payment card with no markings",
+      "batch": 1,
+      "boards": [
+        "store"
+      ]
+    },
+    {
+      "label": "영수증 주세요",
+      "kind": "p",
+      "meaning": "계산대에서 종이 영수증을 받는 모습",
+      "scene": "one paper receipt with plain lines and no text",
+      "batch": 1,
+      "boards": [
+        "store"
+      ]
+    },
+    {
+      "label": "이거요",
+      "kind": "p",
+      "meaning": "고른 물건을 계산대에 올려놓는 모습",
+      "scene": "one hand with the index finger pointing down at one simple box",
+      "batch": 1,
+      "boards": [
+        "store"
+      ]
+    },
+    {
+      "label": "도와주세요",
+      "kind": "p",
+      "meaning": "가게 직원에게 손을 들어 도움을 요청하는 모습",
+      "scene": "a figure raising one hand high to ask for help",
+      "batch": 1,
+      "boards": [
+        "store"
+      ]
+    },
+    {
+      "label": "어디 있어요?",
+      "kind": "p",
+      "meaning": "직원에게 위치를 물으며 두리번거리는 모습",
+      "scene": "one simple map pin marker and one single big question mark",
+      "batch": 1,
+      "boards": [
+        "daiso"
+      ]
+    },
+    {
+      "label": "다른 색 있어요?",
+      "kind": "p",
+      "meaning": "같은 물건의 여러 색을 비교하는 모습",
+      "scene": "three identical simple t-shirts in red, blue and yellow side by side",
+      "batch": 1,
+      "boards": [
+        "daiso"
+      ]
+    },
+    {
+      "label": "이거 살래요",
+      "kind": "p",
+      "meaning": "고른 물건을 장바구니에 넣는 모습",
+      "scene": "one simple shopping basket with one item inside",
+      "batch": 1,
+      "boards": [
+        "daiso"
+      ]
+    }
+  ]
+}

@@ -33,3 +33,6 @@ yarn-error.*
 # Card image tests
 .logic-images/
 server/.env
+
+# 그림 라이브러리 원본·후보 (S3에 보관, git 제외)
+.image-work/

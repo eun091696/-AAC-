@@ -3,10 +3,12 @@
 const http = require('node:http');
 
 const { validateCardImageBody } = require('./validate');
-const { buildPrompt } = require('./promptBuilder');
+const { resolveVisualMeaning } = require('./visualConcepts');
+const { buildPrompt, PROMPT_TEMPLATE_VERSION } = require('./promptBuilder');
 const { computeCacheKey } = require('./hash');
 const { applyCors } = require('./cors');
 const { OpenAITimeoutError } = require('./openaiClient');
+const defaultLibrary = require('./library');
 
 function sendJson(res, status, body) {
   const payload = JSON.stringify(body);
@@ -46,7 +48,15 @@ function clientIp(req) {
  * mocks for the OpenAI client, cache, rate limiter, and concurrency limiter
  * without making real paid network calls.
  */
-function createServer({ config, openaiClient, cache, rateLimiter, concurrencyLimiter, logger }) {
+function createServer({
+  config,
+  openaiClient,
+  cache,
+  rateLimiter,
+  concurrencyLimiter,
+  logger,
+  library = defaultLibrary,
+}) {
   const server = http.createServer(async (req, res) => {
     const start = Date.now();
     const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
@@ -58,7 +68,9 @@ function createServer({ config, openaiClient, cache, rateLimiter, concurrencyLim
       return;
     }
 
-    if (req.method !== 'POST' || url.pathname !== '/v1/card-images') {
+    const isLookup = url.pathname === '/v1/card-images/lookup';
+    const isGenerate = url.pathname === '/v1/card-images';
+    if (req.method !== 'POST' || (!isLookup && !isGenerate)) {
       sendJson(res, 404, { error: 'not_found', message: '경로를 찾을 수 없습니다.' });
       return;
     }
@@ -97,7 +109,47 @@ function createServer({ config, openaiClient, cache, rateLimiter, concurrencyLim
       sendJson(res, 400, { error: 'invalid_request', message: validation.message });
       return;
     }
-    const { label, sentence, kind } = validation.value;
+    // `sentence`/any legacy speech text on the body is discarded by
+    // validateCardImageBody already; only label/kind/visualMeaning survive
+    // past this point, so no speech sentence can reach the provider or cache.
+    const { label, kind, visualMeaning } = validation.value;
+
+    // Resolve to a concrete, unambiguous (meaning, scene) BEFORE checking the
+    // API key, cache, or provider — a missing/ambiguous/insufficient meaning
+    // must never trigger a paid request or a cache lookup/write.
+    const resolved = resolveVisualMeaning({ label, kind, visualMeaning });
+    if (!resolved.ok) {
+      const status = resolved.error === 'invalid_request' ? 400 : 422;
+      const payload = { error: resolved.error, message: resolved.message, label, kind };
+      if (resolved.choices) payload.choices = resolved.choices;
+      sendJson(res, status, payload);
+      return;
+    }
+    const { meaning, scene } = resolved;
+
+    if (isLookup) {
+      // Manually-reviewed library lookup: NEVER checks hasApiKey, NEVER reads
+      // or writes the generation cache, and NEVER calls the provider. A miss
+      // here just means the caller should fall back to generation.
+      try {
+        const entry = library.findApprovedEntry({ label, kind, meaning });
+        const imageBuffer = entry ? await library.readApprovedImage(entry) : null;
+        if (!entry || !imageBuffer) {
+          sendJson(res, 200, { found: false });
+          return;
+        }
+        sendJson(res, 200, {
+          found: true,
+          uri: `data:image/png;base64,${imageBuffer.toString('base64')}`,
+          source: 'approved',
+          visualMeaning: meaning,
+        });
+      } catch (err) {
+        logger.log('library_lookup_error', { errorName: err && err.name });
+        sendJson(res, 200, { found: false });
+      }
+      return;
+    }
 
     if (!config.hasApiKey) {
       sendJson(res, 503, {
@@ -111,8 +163,12 @@ function createServer({ config, openaiClient, cache, rateLimiter, concurrencyLim
       model: config.model,
       promptVersion: config.promptVersion,
       label,
-      sentence,
       kind,
+      meaning,
+      scene,
+      templateVersion: PROMPT_TEMPLATE_VERSION,
+      imageQuality: config.imageQuality,
+      imageSize: config.imageSize,
     });
 
     try {
@@ -122,6 +178,7 @@ function createServer({ config, openaiClient, cache, rateLimiter, concurrencyLim
         sendJson(res, 200, {
           uri: `data:image/png;base64,${cached.toString('base64')}`,
           source: 'ai',
+          visualMeaning: meaning,
         });
         return;
       }
@@ -140,8 +197,12 @@ function createServer({ config, openaiClient, cache, rateLimiter, concurrencyLim
     }
 
     try {
-      const prompt = buildPrompt({ label, sentence, kind });
-      const imageBuffer = await openaiClient.generateImage({ prompt, size: config.imageSize });
+      const prompt = buildPrompt({ label, kind, meaning, scene });
+      const imageBuffer = await openaiClient.generateImage({
+        prompt,
+        size: config.imageSize,
+        quality: config.imageQuality,
+      });
 
       try {
         await cache.set(cacheKey, imageBuffer);
@@ -152,6 +213,7 @@ function createServer({ config, openaiClient, cache, rateLimiter, concurrencyLim
       sendJson(res, 200, {
         uri: `data:image/png;base64,${imageBuffer.toString('base64')}`,
         source: 'ai',
+        visualMeaning: meaning,
       });
       logger.log('card_image_generated', {
         hash: cacheKey.slice(0, 12),

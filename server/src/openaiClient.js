@@ -23,17 +23,21 @@ class OpenAITimeoutError extends Error {
  * `fetchImpl` is injectable for tests (defaults to global fetch, built into Node).
  */
 function createOpenAIClient({ apiKey, model, timeoutMs, fetchImpl = fetch }) {
-  async function generateImage({ prompt, size }) {
+  async function generateImage({ prompt, size, quality }) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
+      // Only officially supported gpt-image-1 params: model, prompt, size,
+      // quality, n. No extra/unsupported params are sent.
+      const body = { model, prompt, size, n: 1 };
+      if (quality) body.quality = quality;
       const res = await fetchImpl(OPENAI_IMAGES_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${apiKey}`,
         },
-        body: JSON.stringify({ model, prompt, size, n: 1 }),
+        body: JSON.stringify(body),
         signal: controller.signal,
       });
 

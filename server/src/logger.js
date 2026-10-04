@@ -11,6 +11,9 @@ function createLogger(sink = console) {
     delete safeFields.apiKey;
     delete safeFields.label;
     delete safeFields.sentence;
+    delete safeFields.visualMeaning;
+    delete safeFields.meaning;
+    delete safeFields.scene;
     delete safeFields.authorization;
     sink.log(JSON.stringify({ ts: new Date().toISOString(), event, ...safeFields }));
   }

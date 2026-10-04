@@ -10,3 +10,14 @@ export async function storeCardImage(dataUri: string): Promise<string> {
   return uri;
  } catch { throw new Error('그림을 기기에 저장하지 못했어요. 저장 공간을 확인해 주세요.'); }
 }
+
+/** Copy the picker-owned file into app documents. No network upload. */
+export async function storeLocalPhoto(uri: string, _base64?: string | null): Promise<string> {
+ if (!FileSystem.documentDirectory) throw new Error('사진 저장 공간을 사용할 수 없어요.');
+ const directory = `${FileSystem.documentDirectory}card-images/`;
+ await FileSystem.makeDirectoryAsync(directory, { intermediates: true });
+ const extension = uri.split('?')[0].match(/\.(png|webp|heic|heif|jpe?g)$/i)?.[1] ?? 'jpg';
+ const target = `${directory}${Date.now()}-${Math.random().toString(36).slice(2)}.${extension}`;
+ try { await FileSystem.copyAsync({ from: uri, to: target }); return target; }
+ catch { throw new Error('사진을 저장하지 못했어요. 저장 공간을 확인해 주세요.'); }
+}
