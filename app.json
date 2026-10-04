@@ -1,15 +1,21 @@
 {
   "expo": {
-    "name": "AAC",
-    "slug": "aac",
+    "name": "콕톡",
+    "slug": "koktok",
     "version": "0.1.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "app.koktok"
     },
     "android": {
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "app.koktok",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FCFCFC"
+      }
     },
     "plugins": [
       [
@@ -20,6 +26,16 @@
           "microphonePermission": false
         }
       ]
-    ]
+    ],
+    "scheme": "koktok",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FCFCFC"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
   }
 }
