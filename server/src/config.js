@@ -30,9 +30,13 @@ function loadConfig(env = process.env) {
     port: toInt(env.PORT, 8787),
     apiKey,
     hasApiKey: apiKey.length > 0,
-    model: env.OPENAI_MODEL || 'gpt-image-1',
+    // gpt-image-1 is scheduled for OpenAI shutdown on 2026-10-23; default to
+    // its recommended successor. OPENAI_MODEL still overrides this for any
+    // deployment that needs a different model.
+    model: env.OPENAI_MODEL || 'gpt-image-2.5-flare',
     imageSize: env.OPENAI_IMAGE_SIZE || '1024x1024',
-    promptVersion: env.PROMPT_VERSION || 'v1',
+    imageQuality: env.OPENAI_IMAGE_QUALITY || 'medium',
+    promptVersion: env.PROMPT_VERSION || 'v2-realistic',
     openaiTimeoutMs: toInt(env.OPENAI_TIMEOUT_MS, 85000),
     maxConcurrency: toInt(env.MAX_CONCURRENCY, 4),
     rateLimitWindowMs: toInt(env.RATE_LIMIT_WINDOW_MS, 60000),

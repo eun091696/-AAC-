@@ -1,0 +1,220 @@
+{
+  "_comment": "Curated exact-noun dictionary for AAC card image generation. Goal: visual clarity for users with language/developmental disabilities and foreign/non-native speakers. Every entry maps a Korean label to a literal, concrete, unambiguous real-world object description (no abstract symbols, no emoji, no metaphor, no invented meaning). Words with more than one common concrete meaning (e.g. 사과 = fruit OR apology) are listed under `ambiguous` instead of `nouns`, and MUST be disambiguated by an explicit, non-empty guardian-provided visualMeaning: picking one of the listed choices exactly reuses the curated scene for that choice, but the choices are UI suggestions, not a strict whitelist, so a more specific literal guardian description is also accepted verbatim (never auto-defaulted, never silently picked for the guardian). This file is read by both server/src/visualConcepts.js (resolution logic) and is the single source of truth; do not duplicate or fork meanings elsewhere.",
+  "nouns": {
+    "물": {
+      "meaning": "마시는 물(음료)",
+      "scene": "a clear glass cup filled with plain drinking water, photographed on a plain table"
+    },
+    "바나나": {
+      "meaning": "먹는 과일 바나나",
+      "scene": "a single ripe yellow banana lying on a plain table"
+    },
+    "발": {
+      "meaning": "사람의 신체 부위 발",
+      "scene": "a person's bare foot photographed from the side against a plain background"
+    },
+    "손": {
+      "meaning": "사람의 신체 부위 손",
+      "scene": "a person's open hand, palm facing the camera, against a plain background"
+    },
+    "신발": {
+      "meaning": "신는 신발",
+      "scene": "a pair of plain sneakers placed on a plain floor"
+    },
+    "모자": {
+      "meaning": "머리에 쓰는 모자",
+      "scene": "a plain baseball cap resting on a flat surface"
+    },
+    "컵": {
+      "meaning": "마시는 데 쓰는 컵",
+      "scene": "an empty plain drinking cup standing on a plain table"
+    },
+    "숟가락": {
+      "meaning": "밥 먹을 때 쓰는 숟가락",
+      "scene": "a plain metal spoon lying on a plain table"
+    },
+    "포크": {
+      "meaning": "음식을 먹을 때 쓰는 포크",
+      "scene": "a plain metal fork lying on a plain table"
+    },
+    "접시": {
+      "meaning": "음식을 담는 접시",
+      "scene": "an empty plain round plate on a plain table"
+    },
+    "의자": {
+      "meaning": "앉는 의자",
+      "scene": "a simple wooden chair against a plain background"
+    },
+    "책상": {
+      "meaning": "공부하거나 일할 때 쓰는 책상",
+      "scene": "a plain wooden desk, empty, against a plain background"
+    },
+    "침대": {
+      "meaning": "잠을 자는 침대",
+      "scene": "a simple bed with plain white sheets in a plain room"
+    },
+    "문": {
+      "meaning": "드나드는 문",
+      "scene": "a plain closed door set in a plain wall"
+    },
+    "창문": {
+      "meaning": "빛이 들어오는 창문",
+      "scene": "a plain window on a wall with daylight visible outside"
+    },
+    "우산": {
+      "meaning": "비 올 때 쓰는 우산",
+      "scene": "a closed umbrella standing upright against a plain background"
+    },
+    "가방": {
+      "meaning": "물건을 담는 가방",
+      "scene": "a simple backpack placed on a plain floor"
+    },
+    "공": {
+      "meaning": "가지고 노는 공",
+      "scene": "a single round ball against a plain background"
+    },
+    "자동차": {
+      "meaning": "타고 다니는 자동차",
+      "scene": "a plain sedan car, side view, against a plain background"
+    },
+    "나무": {
+      "meaning": "자라는 나무",
+      "scene": "a single tree with green leaves against a plain sky background"
+    },
+    "꽃": {
+      "meaning": "피는 꽃",
+      "scene": "a single blooming flower in a plain pot against a plain background"
+    },
+    "강아지": {
+      "meaning": "반려동물 강아지",
+      "scene": "a small dog sitting against a plain background"
+    },
+    "고양이": {
+      "meaning": "반려동물 고양이",
+      "scene": "a cat sitting against a plain background"
+    },
+    "연필": {
+      "meaning": "글씨를 쓰는 연필",
+      "scene": "a single wooden pencil lying on a plain table"
+    },
+    "책": {
+      "meaning": "읽는 책",
+      "scene": "a closed book lying on a plain table"
+    },
+    "시계": {
+      "meaning": "시간을 보는 시계",
+      "scene": "a simple analog wall clock against a plain background"
+    },
+    "전화기": {
+      "meaning": "전화하는 데 쓰는 전화기",
+      "scene": "a plain smartphone lying face-up on a plain table"
+    },
+    "텔레비전": {
+      "meaning": "방송을 보는 텔레비전",
+      "scene": "a plain flat-screen television mounted on a plain wall"
+    },
+    "냉장고": {
+      "meaning": "음식을 보관하는 냉장고",
+      "scene": "a plain closed refrigerator in a plain kitchen background"
+    },
+    "우유": {
+      "meaning": "마시는 우유",
+      "scene": "a glass of plain white milk standing on a plain table"
+    },
+    "머리": {
+      "meaning": "사람의 신체 부위 머리",
+      "scene": "an adult's head shown from the shoulders up, plain background"
+    },
+    "목": {
+      "meaning": "사람의 신체 부위 목(목과 목구멍)",
+      "scene": "an adult's neck and throat area shown from the front, chin slightly raised"
+    },
+    "귀": {
+      "meaning": "사람의 신체 부위 귀",
+      "scene": "a close-up of one human ear seen from the side"
+    },
+    "코": {
+      "meaning": "사람의 신체 부위 코",
+      "scene": "a close-up of a human nose seen from the front"
+    },
+    "가슴": {
+      "meaning": "사람의 신체 부위 가슴",
+      "scene": "an adult's upper chest area in a plain t-shirt, shown from the front"
+    },
+    "팔": {
+      "meaning": "사람의 신체 부위 팔",
+      "scene": "one adult arm extended to the side, shown from shoulder to hand"
+    },
+    "젓가락": {
+      "meaning": "밥 먹을 때 쓰는 젓가락",
+      "scene": "a pair of metal chopsticks lying on a plain table"
+    },
+    "음료수": {
+      "meaning": "병이나 캔에 든 마실 것",
+      "scene": "a few bottled and canned drinks standing together on a plain table"
+    },
+    "삼각김밥": {
+      "meaning": "편의점 삼각김밥",
+      "scene": "a triangle-shaped rice ball (samgak gimbap) wrapped in seaweed, on a plain table"
+    },
+    "라면": {
+      "meaning": "끓여 먹는 라면",
+      "scene": "a bowl of cooked ramen noodles in soup, viewed from above"
+    },
+    "문구": {
+      "meaning": "공책·연필 같은 문구류",
+      "scene": "a notebook, pencils and an eraser arranged on a plain desk"
+    },
+    "청소용품": {
+      "meaning": "빗자루·걸레 같은 청소 도구",
+      "scene": "a broom, a mop and a spray bottle of cleaner standing together"
+    },
+    "주방용품": {
+      "meaning": "냄비·국자 같은 주방 도구",
+      "scene": "a cooking pot, a ladle and a frying pan on a plain kitchen counter"
+    },
+    "선물": {
+      "meaning": "포장된 선물 상자",
+      "scene": "a wrapped gift box with a ribbon on a plain table"
+    }
+  },
+  "ambiguous": {
+    "사과": [
+      "먹는 과일 사과",
+      "잘못에 대해 사과하기"
+    ],
+    "배": [
+      "먹는 과일 배",
+      "몸의 배(복부)",
+      "타는 배(선박)"
+    ],
+    "눈": [
+      "보는 눈(신체기관)",
+      "하늘에서 내리는 눈(눈송이)"
+    ],
+    "차": [
+      "마시는 차(음료)",
+      "타는 차(자동차)"
+    ],
+    "밤": [
+      "밤(해가 진 뒤의 시간)",
+      "먹는 밤(견과류)"
+    ],
+    "말": [
+      "동물 말(馬)",
+      "입으로 하는 말하기(言)"
+    ],
+    "이": [
+      "입 안의 이(치아)",
+      "머리카락에 사는 이(벌레)"
+    ],
+    "다리": [
+      "사람의 신체 부위 다리",
+      "강을 건너는 다리(교량)"
+    ],
+    "등": [
+      "사람의 신체 부위 등",
+      "불을 밝히는 등(조명)"
+    ]
+  }
+}

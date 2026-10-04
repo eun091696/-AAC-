@@ -1,7 +1,11 @@
 export type Level = 'L1' | 'L2' | 'L3';
 export type Tone = 'yes' | 'no';
 
-export type CardImage = { source: 'library'; symbol: string } | { source: 'ai'; uri: string };
+export type CardImage =
+  | { source: 'library'; symbol: string } // legacy OpenMoji, not a reviewed photo library
+  | { source: 'bundled'; id: string; visualMeaning: string } // 앱에 포함된 검수 그림 (assets/library)
+  | { source: 'ai' | 'approved' | 'photo'; uri: string; visualMeaning?: string; reviewed?: boolean }
+  | { source: 'pending'; visualMeaning?: string; reason: 'not-configured' | 'declined' | 'failed' | 'meaning-needed' | 'unreviewed' };
 
 /** 버튼 1개. t: 'n' = 명사(조합용), 'p' = 서술/문장 */
 export type Item = {

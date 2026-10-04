@@ -10,6 +10,16 @@
     },
     "android": {
       "predictiveBackGestureEnabled": false
-    }
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "카드에 쓸 사진을 직접 선택할 때만 사진 보관함을 엽니다. 사진은 이 기기에만 저장됩니다.",
+          "cameraPermission": "카드에 사용할 사진을 직접 찍을 때만 카메라를 사용합니다. 사진은 이 기기에만 저장됩니다.",
+          "microphonePermission": false
+        }
+      ]
+    ]
   }
 }

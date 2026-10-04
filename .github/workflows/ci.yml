@@ -34,6 +34,10 @@ jobs:
         run: npm run check:logic
       - name: 심볼 카탈로그 테스트
         run: npm run check:symbols
+      - name: 그림 뜻 검사
+        run: npm run check:meaning
+      - name: 그림 라이브러리 검사
+        run: npm run check:library
 
   server:
     name: 서버 테스트

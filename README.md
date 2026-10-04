@@ -50,6 +50,6 @@ src/components/          SymbolButton, Grid, AskSheet, PinModal, Toast
 
 - 실제 AI 판 생성: `src/lib/aiDraft.ts`의 `generateBoardDraft()`를 서버 API로 교체 (API 키는 앱에 넣지 말고 서버 경유)
 - 음성인식(STT): 현재는 텍스트 입력. `expo-speech-recognition` 등은 개발 빌드 필요
-- 카드 이미지: 로컬 PNG + 이름 기반 자동 선택 구현. AI 생성 서버 연결은 `IMAGE_IMPLEMENTATION.md` 참조 (실제 API 키/배포/품질 검증 필요)
+- 카드 이미지: 기존 PNG 호환 + 보호자 의미 지정 → 검수 라이브러리 조회 → AI 생성/사진 선택 → 확인. 실패 시 임시 카드 저장. 서버 연결·미완료 항목은 `IMAGE_IMPLEMENTATION.md` 참조 (실제 API 키/배포/품질 검증 필요)
 - 앱 아이콘/스플래시: `app.json`에 icon, splash 추가 필요
 - 기기 간 동기화, 치료사 공유, 사용 기록
