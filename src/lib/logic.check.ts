@@ -91,6 +91,9 @@ eq('AI 판 파싱: 범위 밖 L1 제거', JSON.stringify(pb?.l1), '[0,2]');
 eq('AI 판 파싱: 문자열 문장만', JSON.stringify(pb?.l3), '["안녕하세요"]');
 eq('AI 판 파싱: 질문 형식 확인', pb?.asks.length, 1);
 eq('AI 판 파싱: 명사에는 j 없음', pb?.items[0].j, undefined);
+const pi = parseBoard({ board: { name: '치과', items: [{ ...it6[0], image: { source: 'bundled', id: 'n_x', visualMeaning: '마시는 물' } }, { ...it6[1], image: { source: 'remote', uri: 'http://x' } }, ...it6.slice(2)] } }, 'z');
+eq('AI 판 파싱: 검수 그림 유지', JSON.stringify(pi?.items[0].image), JSON.stringify({ source: 'bundled', id: 'n_x', visualMeaning: '마시는 물' }));
+eq('AI 판 파싱: 다른 출처 그림은 버림', pi?.items[1].image, undefined);
 eq('AI 판 파싱: 버튼 부족하면 버림', parseBoard({ board: { name: 'x', items: it6.slice(0, 3) } }, 'z'), null);
 eq('L1 추천: 병원 화장실 단어는 단어 그대로', suggestL1Sentence(N('🚻', '화장실'), BUILTIN_PLACES[0]), '화장실');
 

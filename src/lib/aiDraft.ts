@@ -94,7 +94,12 @@ export function parseBoard(v: unknown, id: string): Place | null {
   if (!b || !Array.isArray(b.items) || !isStr(b.name)) return null;
   const items: Item[] = b.items
     .filter((x): x is Item => !!x && isStr(x.w) && isStr(x.s) && isStr(x.i) && (x.t === 'n' || x.t === 'p'))
-    .map((x) => ({ i: x.i, w: x.w, s: x.s, t: x.t, ...(x.t === 'p' && (x.j === 'iga' || x.j === 'obj') ? { j: x.j } : {}) }));
+    .map((x) => {
+      const img = x.image as { source?: unknown; id?: unknown; visualMeaning?: unknown } | undefined;
+      // 서버가 연결한 검수 그림(앱에 포함된 그림 ID)만 받음
+      const image = img?.source === 'bundled' && isStr(img.id) && isStr(img.visualMeaning) ? { source: 'bundled' as const, id: img.id, visualMeaning: img.visualMeaning } : undefined;
+      return { i: x.i, w: x.w, s: x.s, t: x.t, ...(x.t === 'p' && (x.j === 'iga' || x.j === 'obj') ? { j: x.j } : {}), ...(image ? { image } : {}) };
+    });
   if (items.length < 6) return null;
   const l1 = (Array.isArray(b.l1) ? b.l1 : []).filter((n): n is number => Number.isInteger(n) && n >= 0 && n < items.length).slice(0, 6);
   const strs = (a: unknown) => (Array.isArray(a) ? a.filter(isStr) : []);
