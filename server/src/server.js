@@ -58,6 +58,7 @@ function createServer({
   logger,
   library = defaultLibrary,
   boardGenerator = null,
+  retriever = null,
 }) {
   // 같은 상황 문장은 다시 LLM을 부르지 않음 (비용 절약)
   const boardCache = new Map();
@@ -280,10 +281,19 @@ function createServer({
       return;
     }
     try {
-      const { board, usage } = await boardGenerator.generate(v.situation);
+      // RAG: 1) 상황과 가까운 기존 카드 이름을 LLM에 참고로 2) 만든 버튼에 검수 그림 연결
+      const related = retriever ? await retriever.related(v.situation).catch(() => []) : [];
+      const { board, usage } = await boardGenerator.generate(v.situation, related);
+      let linked = 0;
+      if (retriever) {
+        const matches = await retriever.match(board.items.map((it) => ({ label: it.w, say: it.s })), { onError: (e) => logger.log('image_match_failed', { error: String(e.message).slice(0, 120) }) }).catch(() => null);
+        matches?.forEach((m, i) => {
+          if (m.id) { board.items[i].image = { source: 'bundled', id: m.id, visualMeaning: m.meaning || m.label }; linked += 1; }
+        });
+      }
       boardCache.set(key, board);
       if (boardCache.size > 300) boardCache.delete(boardCache.keys().next().value);
-      logger.log('board_generated', { ms: Date.now() - start, model: boardGenerator.model, inTokens: usage?.input_tokens, outTokens: usage?.output_tokens, items: board.items.length });
+      logger.log('board_generated', { ms: Date.now() - start, model: boardGenerator.model, inTokens: usage?.input_tokens, outTokens: usage?.output_tokens, items: board.items.length, linkedImages: linked });
       sendJson(res, 200, { board, cached: false, promptVersion: BOARD_PROMPT_VERSION });
     } catch (err) {
       logger.log('board_failed', { ms: Date.now() - start, error: String(err.message).slice(0, 200) });

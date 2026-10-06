@@ -128,3 +128,42 @@ test('sanitizeBoard: 글자와 말하는 문장이 다른 버튼은 버림', () 
   assert.ok(!b.items.some((x) => x.w === '안심돼요'));
   assert.ok(b.items.some((x) => x.w === '천천히요'));
 });
+
+test('POST /v1/boards: 관련 카드 전달 + 버튼에 검수 그림 연결', async () => {
+  let gotRelated;
+  const retriever = {
+    related: async () => ['물', '이'],
+    match: async (items) => items.map((it) => (it.label === '이' ? { id: 'n_tooth', label: '이', meaning: '입 안의 이', how: 'judged' } : { id: null })),
+  };
+  const server = createServer({
+    config: { hasApiKey: true, maxBodyBytes: 4096, corsOrigins: [] }, openaiClient: {}, cache: createMemoryCache(), logger: { log: () => {} },
+    rateLimiter: createRateLimiter({ windowMs: 60000, max: 100 }), concurrencyLimiter: createConcurrencyLimiter(2), retriever,
+    boardGenerator: { model: 'm', generate: async (s, related) => { gotRelated = related; return { board: sanitizeBoard(RAW), usage: null }; } },
+  });
+  await new Promise((r) => server.listen(0, '127.0.0.1', r));
+  try {
+    const res = await fetch(`http://127.0.0.1:${server.address().port}/v1/boards`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ situation: '치과' }) });
+    const { board } = await res.json();
+    assert.deepEqual(gotRelated, ['물', '이']);
+    assert.deepEqual(board.items[0].image, { source: 'bundled', id: 'n_tooth', visualMeaning: '입 안의 이' });
+    assert.equal(board.items[1].image, undefined);
+  } finally { server.close(); }
+});
+
+test('sanitizeBoard: 필수 버튼(도움·멈춤·화장실) 보장, 개인정보 버튼 금지', () => {
+  const few = ['이', '아파요', '무서워요', '물 주세요', '괜찮아요', '시려요'].map((w) => item(w, w));
+  const b = sanitizeBoard({ ...RAW, items: [...few, item('비밀번호', '비밀번호 알려 주세요')] });
+  assert.ok(!b.items.some((x) => x.w === '비밀번호'));
+  for (const w of ['도와주세요', '멈춰요', '화장실']) assert.ok(b.items.some((x) => x.w === w), w);
+  const full = Array.from({ length: 12 }, (_, k) => item(`단어${k}`, `단어${k}`)).map((x, k) => ({ ...x, label: ['가','나','다','라','마','바','사','아','자','차','카','타'][k] + '요', say: ['가','나','다','라','마','바','사','아','자','차','카','타'][k] + '요' }));
+  const c = sanitizeBoard({ ...RAW, items: full });
+  assert.equal(c.items.length, 12, '12개 유지');
+  for (const w of ['도와주세요', '멈춰요', '화장실']) assert.ok(c.items.some((x) => x.w === w), '꽉 찬 판에도 ' + w);
+});
+
+test('sanitizeBoard: 버튼을 넣고 빼도 L1은 원래 버튼을 가리킴', () => {
+  const ks = ['가', '나', '다', '라', '마', '바', '사', '아', '자', '차', '카', '타'];
+  const b = sanitizeBoard({ ...RAW, items: ks.map((k) => item(k + '요', k + '요')), l1: [11, 0, 1] });
+  assert.ok(!b.items.some((x) => x.w === '타요'), '마지막 버튼은 필수 버튼 자리로 빠짐');
+  assert.deepEqual(b.l1.slice(0, 2).map((i) => b.items[i].w), ['가요', '나요'], '빠진 버튼(11번)은 L1에서 제외, 나머지는 그대로');
+});
