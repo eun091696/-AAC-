@@ -10,6 +10,7 @@ const { createDiskCache, createNullCache } = require('../src/cache');
 const { createRateLimiter } = require('../src/rateLimiter');
 const { createConcurrencyLimiter } = require('../src/concurrencyLimiter');
 const { createLogger } = require('../src/logger');
+const { createBoardGenerator } = require('../src/boardGenerator');
 
 const config = loadConfig(process.env);
 const logger = createLogger(console);
@@ -32,7 +33,9 @@ setInterval(() => rateLimiter.sweep(), Math.min(config.rateLimitWindowMs, 60000)
 
 const concurrencyLimiter = createConcurrencyLimiter(config.maxConcurrency);
 
-const server = createServer({ config, openaiClient, cache, rateLimiter, concurrencyLimiter, logger });
+const boardGenerator = config.hasApiKey ? createBoardGenerator({ apiKey: config.apiKey, model: config.textModel }) : null;
+
+const server = createServer({ config, openaiClient, cache, rateLimiter, concurrencyLimiter, logger, boardGenerator });
 
 server.listen(config.port, config.host, () => {
   logger.log('server_started', {

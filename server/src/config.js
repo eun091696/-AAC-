@@ -34,6 +34,8 @@ function loadConfig(env = process.env) {
     // its recommended successor. OPENAI_MODEL still overrides this for any
     // deployment that needs a different model.
     model: env.OPENAI_MODEL || 'gpt-image-2.5-flare',
+    // 판 만들기용 텍스트 모델 (OPENAI_TEXT_MODEL)
+    textModel: env.OPENAI_TEXT_MODEL || 'gpt-5-mini',
     imageSize: env.OPENAI_IMAGE_SIZE || '1024x1024',
     imageQuality: env.OPENAI_IMAGE_QUALITY || 'medium',
     promptVersion: env.PROMPT_VERSION || 'v2-realistic',
