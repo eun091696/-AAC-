@@ -95,12 +95,12 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       if (!text) return;
       setLast(text);
       showToast(text);
-      speak(text, settings.rate);
+      void speak(text, settings.rate, settings.voice);
     },
-    [settings.rate, showToast],
+    [settings.rate, settings.voice, showToast],
   );
 
-  const speakWord = useCallback((text: string) => speak(text, settings.rate), [settings.rate]);
+  const speakWord = useCallback((text: string) => { void speak(text, settings.rate, settings.voice); }, [settings.rate, settings.voice]);
   const update = useCallback((patch: Partial<Settings>) => setSettings((s) => ({ ...s, ...patch })), []);
 
   const addPlace = useCallback((p: Place) => {

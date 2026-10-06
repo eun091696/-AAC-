@@ -37,7 +37,9 @@
           "resizeMode": "contain",
           "backgroundColor": "#FCFCFC"
         }
-      ]
+      ],
+      "expo-audio",
+      "expo-asset"
     ],
     "scheme": "koktok",
     "icon": "./assets/icon.png",

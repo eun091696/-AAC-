@@ -8,6 +8,7 @@ import { useApp } from '../state/AppState';
 import { CardSymbol } from '../components/CardSymbol';
 import { CardForm, UNSAVED_MSG } from '../components/CardForm';
 import { confirmAsync } from '../lib/confirm';
+import { KOKTOK_VOICE, koreanVoices, speak, type KoVoice } from '../lib/speech';
 import { C } from '../theme';
 
 export function GuardianScreen({ onClose }: { onClose: () => void }) {
@@ -27,6 +28,14 @@ export function GuardianScreen({ onClose }: { onClose: () => void }) {
   const [keep, setKeep] = useState<boolean[]>([]);
   const [name, setName] = useState(settings.name);
   const [newPin, setNewPin] = useState('');
+  const [voices, setVoices] = useState<KoVoice[]>([]);
+  useEffect(() => {
+    void koreanVoices().then((v) => setVoices([{ id: KOKTOK_VOICE, name: '콕톡 기본 목소리 (추천)', quality: '' }, ...v]));
+  }, []);
+  const pickVoice = (id: string) => {
+    update({ voice: id });
+    void speak('안녕하세요. 이 목소리로 말할게요.', settings.rate, id);
+  };
 
   // 저장하지 않은 입력이 있으면 나가기 전에 확인, 없으면 바로 이전 화면으로
   const dirty = addDirty || editDirty || draftDirty || !!prompt.trim() || !!draft || name.trim() !== settings.name || !!newPin;
@@ -324,6 +333,24 @@ export function GuardianScreen({ onClose }: { onClose: () => void }) {
           <TextInput value={name} onChangeText={setName} onEndEditing={() => update({ name: name.trim() })} placeholder="예: 김하늘" style={s.txt} />
         </Section>
         )}
+
+        <Section title="목소리">
+          {voices.length === 0 ? (
+            <Text style={{ fontSize: 13, color: C.sub }}>이 기기에서 고를 수 있는 한국어 목소리가 없어요. 기본 목소리로 말해요.</Text>
+          ) : (
+            <View style={s.wrapRow}>
+              {voices.map((v) => {
+                const on = (settings.voice ?? voices[0].id) === v.id;
+                return (
+                  <Pressable key={v.id} style={[s.pChip, on && s.pChipOn]} onPress={() => pickVoice(v.id)}>
+                    <Text style={[{ fontSize: 13 }, on && { color: '#fff' }]}>{`${v.name}${v.quality === 'Enhanced' ? ' · 고품질' : ''}`}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          )}
+          <Text style={s.lvD}>누르면 미리 들어볼 수 있어요. 콕톡 기본 목소리는 아이폰과 안드로이드에서 똑같이 들리고, 미리 준비되지 않은 문장(직접 입력 등)은 기기 목소리로 읽어요. 기기 목소리를 고르려면, 아이폰은 설정 › 손쉬운 사용 › 읽기 및 말하기 › 음성 › 한국어에서 더 자연스러운 고품질 목소리를 무료로 받을 수 있어요.</Text>
+        </Section>
 
         <Section title="말하기 속도">
           <View style={s.row}>

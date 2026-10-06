@@ -38,6 +38,8 @@ jobs:
         run: npm run check:meaning
       - name: 그림 라이브러리 검사
         run: npm run check:library
+      - name: 음성 라이브러리 검사
+        run: npm run check:voice
 
   server:
     name: 서버 테스트
