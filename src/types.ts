@@ -43,6 +43,8 @@ export type Settings = {
   level: Level;
   placeId: string;
   rate: number;
+  /** 기기 TTS 목소리 id (비우면 기본 목소리) */
+  voice?: string;
   name: string;
   pin: string;
 };
