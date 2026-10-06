@@ -2,12 +2,15 @@
   "expo": {
     "name": "콕톡",
     "slug": "koktok",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "app.koktok"
+      "bundleIdentifier": "app.koktok",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "predictiveBackGestureEnabled": false,
@@ -25,17 +28,27 @@
           "cameraPermission": "카드에 사용할 사진을 직접 찍을 때만 카메라를 사용합니다. 사진은 이 기기에만 저장됩니다.",
           "microphonePermission": false
         }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#FCFCFC"
+        }
       ]
     ],
     "scheme": "koktok",
     "icon": "./assets/icon.png",
-    "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#FCFCFC"
-    },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "06c1477d-3bd3-4f5a-bbf2-4c2b5f0a6360"
+      }
+    },
+    "owner": "changeunan"
   }
 }
