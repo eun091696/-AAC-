@@ -1,0 +1,37 @@
+{
+  "note": "LLM 채점관 검증용. 사람이 단 정답과 채점관 판단이 얼마나 일치하는지 측정. speaker: user=사용자가 하는 말, other=직원·의사 등 상대가 하는 말. difficulty: easy/hard(말이 어려운 아동·성인에게 어려운 단어).",
+  "groups": [
+    { "situation": "치과", "items": [
+      { "label": "입 벌려요", "say": "입을 벌려 주세요", "speaker": "other", "difficulty": "easy" },
+      { "label": "아파요", "say": "아파요", "speaker": "user", "difficulty": "easy" },
+      { "label": "앉으세요", "say": "여기 앉으세요", "speaker": "other", "difficulty": "easy" },
+      { "label": "잇몸", "say": "잇몸", "speaker": "user", "difficulty": "easy" },
+      { "label": "스케일링", "say": "스케일링 해 주세요", "speaker": "user", "difficulty": "hard" },
+      { "label": "치료 끝났어요", "say": "치료 끝났습니다", "speaker": "other", "difficulty": "easy" }
+    ] },
+    { "situation": "은행", "items": [
+      { "label": "통장 만들래요", "say": "통장 만들고 싶어요", "speaker": "user", "difficulty": "easy" },
+      { "label": "약관", "say": "약관", "speaker": "user", "difficulty": "hard" },
+      { "label": "번호표 뽑으세요", "say": "번호표를 뽑아 주세요", "speaker": "other", "difficulty": "easy" },
+      { "label": "실명 확인", "say": "실명 확인해 주세요", "speaker": "user", "difficulty": "hard" },
+      { "label": "기다릴게요", "say": "기다릴게요", "speaker": "user", "difficulty": "easy" },
+      { "label": "중도해지", "say": "중도해지 하고 싶어요", "speaker": "user", "difficulty": "hard" }
+    ] },
+    { "situation": "식당", "items": [
+      { "label": "물 주세요", "say": "물 주세요", "speaker": "user", "difficulty": "easy" },
+      { "label": "주문하시겠어요?", "say": "주문하시겠어요?", "speaker": "other", "difficulty": "easy" },
+      { "label": "맛있어요", "say": "맛있어요", "speaker": "user", "difficulty": "easy" },
+      { "label": "알레르기", "say": "알레르기가 있어요", "speaker": "user", "difficulty": "hard" },
+      { "label": "포장해요", "say": "포장해 주세요", "speaker": "user", "difficulty": "easy" },
+      { "label": "맛있게 드세요", "say": "맛있게 드세요", "speaker": "other", "difficulty": "easy" }
+    ] },
+    { "situation": "버스", "items": [
+      { "label": "내려요", "say": "여기서 내려요", "speaker": "user", "difficulty": "easy" },
+      { "label": "환승", "say": "환승할게요", "speaker": "user", "difficulty": "hard" },
+      { "label": "카드 찍으세요", "say": "카드를 찍어 주세요", "speaker": "other", "difficulty": "easy" },
+      { "label": "자리 있어요?", "say": "자리 있어요?", "speaker": "user", "difficulty": "easy" },
+      { "label": "학교 가요", "say": "학교에 가요", "speaker": "user", "difficulty": "easy" },
+      { "label": "뒤로 가세요", "say": "뒤로 들어가세요", "speaker": "other", "difficulty": "easy" }
+    ] }
+  ]
+}
