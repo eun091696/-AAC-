@@ -12,12 +12,19 @@ const MANIFEST = path.join(ROOT, 'scripts/voice-library/manifest.json');
 const GEN_TS = path.join(ROOT, 'src/lib/voiceClips.generated.ts');
 const VOICE = 'F1', STEPS = 8, SPEED = 1.0;
 
+// 앞뒤 무음 자르기: Supertonic 출력은 앞에 약 0.35초 무음이 있어 카드를 눌러도 소리가 늦게 들림
+function trimSilence(f32, sampleRate, threshold = 0.01) {
+  let a = 0; while (a < f32.length && Math.abs(f32[a]) < threshold) a++;
+  let b = f32.length - 1; while (b > a && Math.abs(f32[b]) < threshold) b--;
+  const keepHead = Math.floor(sampleRate * 0.05), keepTail = Math.floor(sampleRate * 0.12);
+  return f32.slice(Math.max(0, a - keepHead), Math.min(f32.length, b + keepTail));
+}
 const key = (t) => t.replace(/\s+/g, ' ').trim();
 const fnv = (s) => { let h = 0x811c9dc5; for (const c of Buffer.from(s)) { h ^= c; h = Math.imul(h, 0x01000193) >>> 0; } return h.toString(16).padStart(8, '0'); };
 
 execFileSync('npx', ['tsc', 'scripts/voice-library/phrases.ts', '--outDir', '.tts-work/phr', '--module', 'commonjs', '--target', 'es2020', '--skipLibCheck', '--ignoreConfig'], { cwd: ROOT });
 const phrases = JSON.parse(execFileSync('node', ['.tts-work/phr/scripts/voice-library/phrases.js'], { cwd: ROOT, encoding: 'utf8' }));
-const manifest = fs.existsSync(MANIFEST) ? JSON.parse(fs.readFileSync(MANIFEST, 'utf8')) : { voice: `supertonic-3/${VOICE}`, steps: STEPS, speed: SPEED, clips: {} };
+const manifest = fs.existsSync(MANIFEST) ? JSON.parse(fs.readFileSync(MANIFEST, 'utf8')) : { voice: `supertonic-3/${VOICE}`, steps: STEPS, speed: SPEED, trim: true, clips: {} };
 fs.mkdirSync(OUT, { recursive: true });
 
 const todo = phrases.filter((t) => !manifest.clips[key(t)] || !fs.existsSync(path.join(OUT, manifest.clips[key(t)])));
@@ -33,7 +40,7 @@ if (todo.length) {
   for (const t of todo) {
     const { wav, duration } = await tts.call(t, 'ko', style, STEPS, SPEED);
     const file = `${fnv(key(t))}.mp3`;
-    fs.writeFileSync(path.join(OUT, file), toMp3(wav.slice(0, Math.floor(tts.sampleRate * duration[0]))));
+    fs.writeFileSync(path.join(OUT, file), toMp3(trimSilence(wav.slice(0, Math.floor(tts.sampleRate * duration[0])), tts.sampleRate)));
     manifest.clips[key(t)] = file;
     if (++i % 25 === 0) { console.log(`${i}/${todo.length}`); fs.writeFileSync(MANIFEST, JSON.stringify(manifest, null, 1)); }
   }

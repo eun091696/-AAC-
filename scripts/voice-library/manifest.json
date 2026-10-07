@@ -2,6 +2,7 @@
  "voice": "supertonic-3/F1",
  "steps": 8,
  "speed": 1,
+ "trim": true,
  "clips": {
   "이 속도로 말할게요": "bc7d9bed.mp3",
   "안녕하세요. 이 목소리로 말할게요.": "e89b283d.mp3",

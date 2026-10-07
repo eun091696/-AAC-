@@ -1,8 +1,8 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { Item, Place, Settings } from '../types';
-import { BUILTIN_PLACES, DEFAULT_SETTINGS, l1Items } from '../data';
+import { BUILTIN_PLACES, CORE, DEFAULT_SETTINGS, l1Items } from '../data';
 import { clearState, loadState, saveState } from '../lib/storage';
-import { speak } from '../lib/speech';
+import { speak, warmUpSpeech } from '../lib/speech';
 import { CardEdits, mergePlace } from '../lib/cardEdits';
 import type { ToastAction, ToastState } from '../components/Toast';
 
@@ -59,6 +59,11 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const [last, setLast] = useState('');
   const [toast, setToast] = useState<ToastState>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // 첫 터치 때 소리가 늦지 않게: 오디오 설정과 맨 위 핵심 버튼 음성을 미리 준비
+  useEffect(() => {
+    warmUpSpeech(Object.values(CORE).flat().flatMap((c) => [c.w, c.s]));
+  }, []);
 
   useEffect(() => {
     loadState().then((s) => {
