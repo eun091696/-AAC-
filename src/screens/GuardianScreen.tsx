@@ -135,7 +135,7 @@ export function GuardianScreen({ onClose }: { onClose: () => void }) {
 
         <Section title="AI로 판 만들기">
           <TextInput value={prompt} onChangeText={setPrompt} placeholder="예: 내일 치과 가요 / 토요일 미용실 / 카페 가요" style={s.txt} multiline />
-          <Text style={s.hint}>현재 데모: 실제 AI 대신 키워드 템플릿으로 초안을 만들어요. 승인해야 사용자 화면에 반영돼요.</Text>
+          <Text style={s.hint}>AI가 상황에 맞는 판 초안을 만들어요(연결이 안 되면 기본 틀로 만들어요). 승인해야 사용자 화면에 반영돼요.</Text>
           <Pressable style={[s.btn, s.pri]} onPress={generate} disabled={loading}>
             <Text style={[s.btnT, { color: '#fff' }]}>✨ 초안 만들기</Text>
           </Pressable>

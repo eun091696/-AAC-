@@ -167,3 +167,28 @@ test('sanitizeBoard: 버튼을 넣고 빼도 L1은 원래 버튼을 가리킴', 
   assert.ok(!b.items.some((x) => x.w === '타요'), '마지막 버튼은 필수 버튼 자리로 빠짐');
   assert.deepEqual(b.l1.slice(0, 2).map((i) => b.items[i].w), ['가요', '나요'], '빠진 버튼(11번)은 L1에서 제외, 나머지는 그대로');
 });
+
+test('validateBoardBody: 개인정보 요청은 LLM에 보내기 전에 차단', () => {
+  const v = validateBoardBody({ situation: '엄마 카드 비밀번호 말하는 버튼 만들어 줘' });
+  assert.equal(v.ok, false);
+  assert.equal(v.blocked, true);
+  assert.equal(validateBoardBody({ situation: '은행에서 통장 만들어요' }).ok, true);
+});
+
+test('generator: 시간 초과·서버 오류는 1번 재시도, 다른 오류는 바로 실패', async () => {
+  let n = 0;
+  const flaky = async () => { n += 1; if (n === 1) return { ok: false, status: 503, json: async () => ({}) }; return { ok: true, status: 200, json: async () => okResponse(RAW) }; };
+  const g = createBoardGenerator({ apiKey: 'k', model: 'm', fetchImpl: flaky });
+  assert.equal((await g.generate('치과')).board.name, '치과');
+  assert.equal(n, 2);
+  let m = 0;
+  const bad = createBoardGenerator({ apiKey: 'k', model: 'm', fetchImpl: async () => { m += 1; return { ok: false, status: 400, json: async () => ({}) }; } });
+  await assert.rejects(bad.generate('치과'), /400/);
+  assert.equal(m, 1);
+});
+
+test('sanitizeBoard: LLM이 어렵다고 표시한 버튼은 뺌', () => {
+  const b = sanitizeBoard({ ...RAW, items: [...RAW.items, { ...item('처방전', '처방전 있어요'), level: 'hard' }, { ...item('기다려요', '기다릴게요'), level: 'basic' }] });
+  assert.ok(!b.items.some((x) => x.w === '처방전'));
+  assert.ok(b.items.some((x) => x.w === '기다려요'));
+});

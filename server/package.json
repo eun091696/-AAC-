@@ -6,7 +6,10 @@
   "main": "bin/start.js",
   "scripts": {
     "start": "node bin/start.js",
-    "test": "node --test test/*.test.js"
+    "test": "node --test test/*.test.js",
+    "embeddings": "node scripts/build-embeddings.js",
+    "eval:match": "node scripts/eval-match.js",
+    "eval:boards": "node scripts/eval-boards.js"
   },
   "engines": {
     "node": ">=18"
