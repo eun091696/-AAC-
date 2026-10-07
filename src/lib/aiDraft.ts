@@ -1,8 +1,7 @@
 /**
  * 판(보드) 초안 생성.
- * 현재: 키워드 템플릿 목업 (실제 AI 미연동).
- * 교체 지점: generateBoardDraft() 내부를 서버 API 호출로 바꾸고, 반환 타입(Place)과
- * "보호자 승인 후 반영" 흐름은 그대로 유지할 것. 의료 문장은 검수 세트 우선.
+ * 서버가 연결돼 있으면 LLM(/v1/boards)으로 만들고, 없거나 실패하면 키워드 템플릿으로 만든다.
+ * 어느 쪽이든 보호자가 확인·선택한 뒤에만 반영된다.
  */
 import type { Item, Place } from '../types';
 import { BUILTIN_PLACES, N, P } from '../data';
@@ -83,9 +82,51 @@ export function draftFromText(text: string, id = 'c' + Date.now()): Place {
   };
 }
 
-export async function generateBoardDraft(text: string): Promise<Place> {
-  await new Promise((r) => setTimeout(r, 600));
-  return draftFromText(text);
+// Expo가 빌드 때 process.env.EXPO_PUBLIC_* 를 값으로 바꿔 넣음 (Node 타입 없이 로직 테스트도 컴파일되게 선언)
+declare const process: { env: Record<string, string | undefined> };
+
+export type BoardDraft = { place: Place; source: 'ai' | 'template'; note?: string };
+
+const isStr = (v: unknown): v is string => typeof v === 'string';
+/** 서버 응답을 다시 한 번 확인 (형식이 이상하면 버림) */
+export function parseBoard(v: unknown, id: string): Place | null {
+  const b = (v as { board?: Record<string, unknown> })?.board;
+  if (!b || !Array.isArray(b.items) || !isStr(b.name)) return null;
+  const items: Item[] = b.items
+    .filter((x): x is Item => !!x && isStr(x.w) && isStr(x.s) && isStr(x.i) && (x.t === 'n' || x.t === 'p'))
+    .map((x) => {
+      const img = x.image as { source?: unknown; id?: unknown; visualMeaning?: unknown } | undefined;
+      // 서버가 연결한 검수 그림(앱에 포함된 그림 ID)만 받음
+      const image = img?.source === 'bundled' && isStr(img.id) && isStr(img.visualMeaning) ? { source: 'bundled' as const, id: img.id, visualMeaning: img.visualMeaning } : undefined;
+      return { i: x.i, w: x.w, s: x.s, t: x.t, ...(x.t === 'p' && (x.j === 'iga' || x.j === 'obj') ? { j: x.j } : {}), ...(image ? { image } : {}) };
+    });
+  if (items.length < 6) return null;
+  const l1 = (Array.isArray(b.l1) ? b.l1 : []).filter((n): n is number => Number.isInteger(n) && n >= 0 && n < items.length).slice(0, 6);
+  const strs = (a: unknown) => (Array.isArray(a) ? a.filter(isStr) : []);
+  const asks = (Array.isArray(b.asks) ? b.asks : []).filter((a) => a && isStr(a.q) && (isStr(a.o) || Array.isArray(a.o)));
+  return { id, name: b.name, icon: isStr(b.icon) ? b.icon : '📍', custom: true, items, l1, l3: strs(b.l3), pred: strs(b.pred), asks };
+}
+
+export async function generateBoardDraft(text: string): Promise<BoardDraft> {
+  const id = 'c' + Date.now();
+  const base = process.env.EXPO_PUBLIC_IMAGE_API_URL?.trim().replace(/\/$/, '');
+  if (base) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 50_000);
+    try {
+      const res = await fetch(`${base}/v1/boards`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ situation: text }), signal: controller.signal,
+      });
+      const place = res.ok ? parseBoard(await res.json(), id) : null;
+      if (place) return { place, source: 'ai' };
+    } catch {
+      // 네트워크 오류 -> 템플릿
+    } finally {
+      clearTimeout(timer);
+    }
+    return { place: draftFromText(text, id), source: 'template', note: 'AI 연결이 안 돼서 기본 틀로 만들었어요.' };
+  }
+  return { place: draftFromText(text, id), source: 'template' };
 }
 
 /** 보호자가 체크한 버튼만 남기고 L1 인덱스 재계산 */

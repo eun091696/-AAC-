@@ -25,6 +25,7 @@ export function GuardianScreen({ onClose }: { onClose: () => void }) {
   const [prompt, setPrompt] = useState('');
   const [loading, setLoading] = useState(false);
   const [draft, setDraft] = useState<Place | null>(null);
+  const [draftSource, setDraftSource] = useState<'ai' | 'template'>('template');
   const [keep, setKeep] = useState<boolean[]>([]);
   const [name, setName] = useState(settings.name);
   const [newPin, setNewPin] = useState('');
@@ -87,10 +88,12 @@ export function GuardianScreen({ onClose }: { onClose: () => void }) {
     setLoading(true);
     setDraft(null);
     setDraftAdding(false);
-    const d = await generateBoardDraft(t);
+    const { place: d, source, note } = await generateBoardDraft(t);
     setDraft(d);
+    setDraftSource(source);
     setKeep(d.items.map(() => true));
     setLoading(false);
+    if (note) showToast(note);
   };
 
   const approve = () => {
@@ -140,7 +143,7 @@ export function GuardianScreen({ onClose }: { onClose: () => void }) {
           {draft && (
             <View style={{ marginTop: 10 }}>
               <Text style={s.dHead}>{`${draft.icon} ${draft.name} 판 초안`}</Text>
-              <Text style={s.dSub}>{`버튼 ${draft.items.length}개 · L3 문장 ${draft.l3.length}개 · 상대 질문 ${draft.asks.length}개`}</Text>
+              <Text style={s.dSub}>{`${draftSource === 'ai' ? 'AI가 만든 초안 · 확인 후 추가해 주세요 · ' : ''}버튼 ${draft.items.length}개 · L3 문장 ${draft.l3.length}개 · 상대 질문 ${draft.asks.length}개`}</Text>
               <View style={s.dItems}>
                 {draft.items.map((it, i) => (
                   <Pressable

@@ -9,6 +9,7 @@ const { computeCacheKey } = require('./hash');
 const { applyCors } = require('./cors');
 const { OpenAITimeoutError } = require('./openaiClient');
 const defaultLibrary = require('./library');
+const { validateBoardBody, BOARD_PROMPT_VERSION } = require('./boardGenerator');
 
 function sendJson(res, status, body) {
   const payload = JSON.stringify(body);
@@ -56,7 +57,11 @@ function createServer({
   concurrencyLimiter,
   logger,
   library = defaultLibrary,
+  boardGenerator = null,
+  retriever = null,
 }) {
+  // 같은 상황 문장은 다시 LLM을 부르지 않음 (비용 절약)
+  const boardCache = new Map();
   const server = http.createServer(async (req, res) => {
     const start = Date.now();
     const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
@@ -65,6 +70,11 @@ function createServer({
 
     if (req.method === 'GET' && url.pathname === '/health') {
       sendJson(res, 200, { status: 'ok' });
+      return;
+    }
+
+    if (url.pathname === '/v1/boards' && req.method === 'POST') {
+      await handleBoard(req, res, start);
       return;
     }
 
@@ -237,6 +247,62 @@ function createServer({
       release();
     }
   });
+
+  async function handleBoard(req, res, start) {
+    if (!boardGenerator) {
+      sendJson(res, 503, { error: 'board_disabled', message: 'AI 판 만들기가 아직 연결되지 않았어요.' });
+      return;
+    }
+    if (!rateLimiter.check(clientIp(req))) {
+      sendJson(res, 429, { error: 'rate_limited', message: '요청이 너무 많습니다. 잠시 후 다시 시도하세요.' });
+      return;
+    }
+    let body;
+    try {
+      body = JSON.parse((await readBody(req, config.maxBodyBytes)).toString('utf8') || '{}');
+    } catch {
+      sendJson(res, 400, { error: 'invalid_json', message: '요청을 읽을 수 없습니다.' });
+      return;
+    }
+    const v = validateBoardBody(body);
+    if (!v.ok) {
+      sendJson(res, 400, { error: 'invalid_request', message: v.message });
+      return;
+    }
+    const key = v.situation.toLowerCase();
+    const hit = boardCache.get(key);
+    if (hit) {
+      sendJson(res, 200, { board: hit, cached: true, promptVersion: BOARD_PROMPT_VERSION });
+      return;
+    }
+    const release = concurrencyLimiter.tryAcquire();
+    if (!release) {
+      sendJson(res, 503, { error: 'busy', message: '지금 요청이 많아요. 잠시 후 다시 시도해 주세요.' });
+      return;
+    }
+    try {
+      // RAG: 1) 상황과 가까운 기존 카드 이름을 LLM에 참고로 2) 만든 버튼에 검수 그림 연결
+      const related = retriever ? await retriever.related(v.situation).catch(() => []) : [];
+      const { board, usage } = await boardGenerator.generate(v.situation, related);
+      let linked = 0;
+      if (retriever) {
+        const matches = await retriever.match(board.items.map((it) => ({ label: it.w, say: it.s })), { onError: (e) => logger.log('image_match_failed', { error: String(e.message).slice(0, 120) }) }).catch(() => null);
+        matches?.forEach((m, i) => {
+          if (m.id) { board.items[i].image = { source: 'bundled', id: m.id, visualMeaning: m.meaning || m.label }; linked += 1; }
+        });
+      }
+      boardCache.set(key, board);
+      if (boardCache.size > 300) boardCache.delete(boardCache.keys().next().value);
+      logger.log('board_generated', { ms: Date.now() - start, model: boardGenerator.model, inTokens: usage?.input_tokens, outTokens: usage?.output_tokens, items: board.items.length, linkedImages: linked });
+      sendJson(res, 200, { board, cached: false, promptVersion: BOARD_PROMPT_VERSION });
+    } catch (err) {
+      logger.log('board_failed', { ms: Date.now() - start, error: String(err.message).slice(0, 200) });
+      const status = err.code === 'TIMEOUT' ? 504 : err.code === 'REFUSED' ? 422 : 502;
+      sendJson(res, status, { error: 'board_failed', message: '판을 만들지 못했어요. 잠시 후 다시 시도해 주세요.' });
+    } finally {
+      release();
+    }
+  }
 
   return server;
 }

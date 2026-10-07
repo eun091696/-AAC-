@@ -1,7 +1,7 @@
 /* 핵심 로직 점검 스크립트: npm run check:logic */
 import { compose, iga } from './korean';
 import { BUILTIN_PLACES, l1Items, N, nounExample, OPTS, P, suggestL1Sentence } from '../data';
-import { applySelection, draftFromText, extractPlaceName } from './aiDraft';
+import { applySelection, draftFromText, extractPlaceName, parseBoard } from './aiDraft';
 import { mapHeard } from './heard';
 import { mergePlace, visibleItems } from './cardEdits';
 
@@ -83,6 +83,18 @@ eq('들은말 결제', mapHeard('결제는 어떻게 하세요?'), 'pay');
 eq('예시: 병원 화장실은 아파요 안 붙임', nounExample('화장실', BUILTIN_PLACES[0]), null);
 eq('예시: 병원 손은 아파요', nounExample('손', BUILTIN_PLACES[0]), '손이 아파요');
 eq('예시: 식당 수저는 주세요', nounExample('숟가락', BUILTIN_PLACES[1]), '숟가락 주세요');
+// AI 판 응답 파싱: 이상한 항목은 버리고, 너무 적으면 null
+const it6 = ['물', '아파요', '무서워요', '도와주세요', '화장실', '괜찮아요'].map((w, k) => ({ i: '🙂', w, s: w, t: k ? 'p' : 'n', j: k === 1 ? 'iga' : undefined }));
+const pb = parseBoard({ board: { name: '치과', icon: '🦷', items: [...it6, { w: 1 }], l1: [0, 9, 2], l3: ['안녕하세요', 3], asks: [{ q: '언제?', o: 'time' }, { x: 1 }] } }, 'z');
+eq('AI 판 파싱: 잘못된 버튼 제거', pb?.items.length, 6);
+eq('AI 판 파싱: 범위 밖 L1 제거', JSON.stringify(pb?.l1), '[0,2]');
+eq('AI 판 파싱: 문자열 문장만', JSON.stringify(pb?.l3), '["안녕하세요"]');
+eq('AI 판 파싱: 질문 형식 확인', pb?.asks.length, 1);
+eq('AI 판 파싱: 명사에는 j 없음', pb?.items[0].j, undefined);
+const pi = parseBoard({ board: { name: '치과', items: [{ ...it6[0], image: { source: 'bundled', id: 'n_x', visualMeaning: '마시는 물' } }, { ...it6[1], image: { source: 'remote', uri: 'http://x' } }, ...it6.slice(2)] } }, 'z');
+eq('AI 판 파싱: 검수 그림 유지', JSON.stringify(pi?.items[0].image), JSON.stringify({ source: 'bundled', id: 'n_x', visualMeaning: '마시는 물' }));
+eq('AI 판 파싱: 다른 출처 그림은 버림', pi?.items[1].image, undefined);
+eq('AI 판 파싱: 버튼 부족하면 버림', parseBoard({ board: { name: 'x', items: it6.slice(0, 3) } }, 'z'), null);
 eq('L1 추천: 병원 화장실 단어는 단어 그대로', suggestL1Sentence(N('🚻', '화장실'), BUILTIN_PLACES[0]), '화장실');
 
 if (fail) {
