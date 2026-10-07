@@ -74,3 +74,6 @@ jobs:
           done
           URL=$(aws lightsail get-container-services --service-name "$SERVICE" --query 'containerServices[0].url' --output text)
           curl -fsS "${URL}health"
+          echo ""
+          echo "서버 주소: $URL"
+          echo "### 서버 주소: $URL" >> "$GITHUB_STEP_SUMMARY"
