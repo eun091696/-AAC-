@@ -1,0 +1,7 @@
+.env
+.cache
+node_modules
+test
+eval
+scripts
+*.md

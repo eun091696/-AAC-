@@ -47,6 +47,13 @@ function loadConfig(env = process.env) {
     cacheEnabled: toBool(env.CACHE_ENABLED, true),
     cacheDir: env.CACHE_DIR || './.cache',
     corsOrigins: parseOrigins(env.CORS_ORIGINS),
+    // 로드밸런서 뒤에서 실제 사용자 IP를 X-Forwarded-For에서 읽음 (AWS 배포 시 true)
+    trustProxy: toBool(env.TRUST_PROXY, false),
+    // 하루 사용량 상한 (OpenAI 비용 보호)
+    dailyBoardsPerUser: toInt(env.DAILY_BOARDS_PER_USER, 20),
+    dailyBoardsTotal: toInt(env.DAILY_BOARDS_TOTAL, 300),
+    dailyImagesPerUser: toInt(env.DAILY_IMAGES_PER_USER, 10),
+    dailyImagesTotal: toInt(env.DAILY_IMAGES_TOTAL, 100),
   };
 }
 
