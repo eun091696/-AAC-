@@ -9,6 +9,7 @@ const { computeCacheKey } = require('./hash');
 const { applyCors } = require('./cors');
 const { OpenAITimeoutError } = require('./openaiClient');
 const defaultLibrary = require('./library');
+const { createDailyQuota } = require('./dailyQuota');
 const { validateBoardBody, BOARD_PROMPT_VERSION } = require('./boardGenerator');
 
 function sendJson(res, status, body) {
@@ -40,7 +41,11 @@ function readBody(req, maxBytes) {
   });
 }
 
-function clientIp(req) {
+function clientIp(req, trustProxy = false) {
+  if (trustProxy) {
+    const fwd = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim();
+    if (fwd) return fwd;
+  }
   return req.socket.remoteAddress || 'unknown';
 }
 
@@ -59,7 +64,10 @@ function createServer({
   library = defaultLibrary,
   boardGenerator = null,
   retriever = null,
+  boardQuota = createDailyQuota({ perKey: config.dailyBoardsPerUser ?? 20, total: config.dailyBoardsTotal ?? 300 }),
+  imageQuota = createDailyQuota({ perKey: config.dailyImagesPerUser ?? 10, total: config.dailyImagesTotal ?? 100 }),
 }) {
+  const ipOf = (req) => clientIp(req, config.trustProxy);
   // 같은 상황 문장은 다시 LLM을 부르지 않음 (비용 절약)
   const boardCache = new Map();
   const server = http.createServer(async (req, res) => {
@@ -85,7 +93,7 @@ function createServer({
       return;
     }
 
-    const ip = clientIp(req);
+    const ip = ipOf(req);
     if (!rateLimiter.check(ip)) {
       sendJson(res, 429, {
         error: 'rate_limited',
@@ -197,6 +205,13 @@ function createServer({
       // fall through to generation; cache errors should not block the request
     }
 
+    const quota = imageQuota.tryUse(ipOf(req));
+    if (!quota.ok) {
+      logger.log('daily_limit', { kind: 'image', reason: quota.reason });
+      sendJson(res, 429, { error: 'daily_limit', message: '오늘 만들 수 있는 그림 수를 다 썼어요. 내일 다시 시도해 주세요.' });
+      return;
+    }
+
     const release = concurrencyLimiter.tryAcquire();
     if (!release) {
       sendJson(res, 429, {
@@ -253,7 +268,7 @@ function createServer({
       sendJson(res, 503, { error: 'board_disabled', message: 'AI 판 만들기가 아직 연결되지 않았어요.' });
       return;
     }
-    if (!rateLimiter.check(clientIp(req))) {
+    if (!rateLimiter.check(ipOf(req))) {
       sendJson(res, 429, { error: 'rate_limited', message: '요청이 너무 많습니다. 잠시 후 다시 시도하세요.' });
       return;
     }
@@ -273,6 +288,12 @@ function createServer({
     const hit = boardCache.get(key);
     if (hit) {
       sendJson(res, 200, { board: hit, cached: true, promptVersion: BOARD_PROMPT_VERSION });
+      return;
+    }
+    const quota = boardQuota.tryUse(ipOf(req));
+    if (!quota.ok) {
+      logger.log('daily_limit', { kind: 'board', reason: quota.reason });
+      sendJson(res, 429, { error: 'daily_limit', message: '오늘 만들 수 있는 판 수를 다 썼어요. 내일 다시 시도해 주세요.' });
       return;
     }
     const release = concurrencyLimiter.tryAcquire();
