@@ -45,10 +45,16 @@ export function HomeScreen({ onShow, onGuardian, onAddCard, onAsk }: Props) {
     <View style={s.wrap}>
       {/* header */}
       <View style={s.hdr}>
-        <Text style={s.place}>{`${place.icon} 지금: ${place.name}`}</Text>
+        <View style={s.placeBox}>
+          <Text style={s.placeT}>{place.icon}</Text>
+          <Text style={s.placeT} numberOfLines={1}>{`지금: ${place.name}`}</Text>
+        </View>
         <Text style={s.lvl}>{L}</Text>
         <Pressable style={s.gbtn} onPress={onGuardian} accessibilityLabel="보호자 모드">
-          <Text style={s.gbtnT}>🔒 보호자</Text>
+          <View style={s.row}>
+            <Text style={s.gbtnT}>🔒</Text>
+            <Text style={s.gbtnT} numberOfLines={1}>보호자</Text>
+          </View>
         </Pressable>
       </View>
 
@@ -105,12 +111,15 @@ export function HomeScreen({ onShow, onGuardian, onAddCard, onAsk }: Props) {
       {L !== 'L1' && (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.tabsWrap} contentContainerStyle={s.tabs}>
           {places.map((p) => (
-            <Pressable key={p.id} style={[s.tab, p.id === place.id && s.tabOn]} onPress={() => update({ placeId: p.id })}>
-              <Text style={[s.tabT, p.id === place.id && { color: '#fff' }]}>{`${p.icon} ${p.name}`}</Text>
+            <Pressable key={p.id} style={[s.tab, s.row, p.id === place.id && s.tabOn]} onPress={() => update({ placeId: p.id })}>
+              {/* 안드로이드: 이모지와 한글을 한 Text에 넣으면 너비 계산이 틀려 뒷글자가 잘림 → 분리 */}
+              <Text style={s.tabT}>{p.icon}</Text>
+              <Text style={[s.tabT, p.id === place.id && { color: '#fff' }]} numberOfLines={1}>{p.name}</Text>
             </Pressable>
           ))}
-          <Pressable style={[s.tab, s.tabAdd]} onPress={onGuardian}>
-            <Text style={s.tabT}>＋ 새 판</Text>
+          <Pressable style={[s.tab, s.row, s.tabAdd]} onPress={onGuardian}>
+            <Text style={s.tabT}>＋</Text>
+            <Text style={s.tabT} numberOfLines={1}>새 판</Text>
           </Pressable>
         </ScrollView>
       )}
@@ -203,7 +212,9 @@ export function HomeScreen({ onShow, onGuardian, onAddCard, onAsk }: Props) {
 const s = StyleSheet.create({
   wrap: { flex: 1, backgroundColor: C.bg },
   hdr: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 12, paddingVertical: 8, borderBottomWidth: 1, borderColor: C.line },
-  place: { backgroundColor: C.primarySoft, color: C.primary, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 14, fontWeight: '700', fontSize: 14, overflow: 'hidden' },
+  placeBox: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: C.primarySoft, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 14, flexShrink: 0 },
+  placeT: { color: C.primary, fontWeight: '700', fontSize: 14 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 4, flexShrink: 0 },
   lvl: { fontSize: 11, color: C.sub, borderWidth: 1, borderColor: '#ddd', borderRadius: 8, paddingHorizontal: 6, paddingVertical: 2 },
   gbtn: { marginLeft: 'auto', backgroundColor: '#f3f4f6', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 6 },
   gbtnT: { fontSize: 12, color: '#777' },

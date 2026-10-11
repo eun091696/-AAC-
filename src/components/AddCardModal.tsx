@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { IconText } from './IconText';
 import { KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Text } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { useApp } from '../state/AppState';
@@ -23,7 +24,7 @@ export function AddCardModal({ visible, onClose }: { visible: boolean; onClose: 
       <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }} edges={['top', 'bottom']}>
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <ScrollView contentContainerStyle={{ padding: 16, gap: 8 }} keyboardShouldPersistTaps="handled">
-            <Text style={s.t}>{`${place.icon} ${place.name} 판에 카드 추가`}</Text>
+            <IconText icon={place.icon} text={`${place.name} 판에 카드 추가`} style={s.t} />
             <Text style={s.sub}>추가한 카드는 이 장소 판의 맨 뒤에 붙어요. 수정·삭제는 보호자 모드의 카드 관리에서 할 수 있어요.</Text>
             <CardForm
               onCancel={onClose}
