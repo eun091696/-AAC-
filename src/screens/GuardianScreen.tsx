@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { IconText } from '../components/IconText';
 import { ActivityIndicator, BackHandler, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import type { Place } from '../types';
 import { l1Indices, l1Items, LEVELS } from '../data';
@@ -142,7 +143,7 @@ export function GuardianScreen({ onClose }: { onClose: () => void }) {
           {loading && <ActivityIndicator style={{ marginTop: 10 }} />}
           {draft && (
             <View style={{ marginTop: 10 }}>
-              <Text style={s.dHead}>{`${draft.icon} ${draft.name} 판 초안`}</Text>
+              <IconText icon={draft.icon} text={`${draft.name} 판 초안`} style={s.dHead} />
               <Text style={s.dSub}>{`${draftSource === 'ai' ? 'AI가 만든 초안 · 확인 후 추가해 주세요 · ' : ''}버튼 ${draft.items.length}개 · L3 문장 ${draft.l3.length}개 · 상대 질문 ${draft.asks.length}개`}</Text>
               <View style={s.dItems}>
                 {draft.items.map((it, i) => (
@@ -196,7 +197,7 @@ export function GuardianScreen({ onClose }: { onClose: () => void }) {
           <View style={s.wrapRow}>
             {places.map((p) => (
               <Pressable key={p.id} style={[s.pChip, cardPlace.id === p.id && s.pChipOn]} onPress={() => { setCardPlaceId(p.id); setEditing(null); }}>
-                <Text style={[{ fontSize: 13 }, cardPlace.id === p.id && { color: '#fff' }]}>{`${p.icon} ${p.name}`}</Text>
+                <IconText icon={p.icon} text={p.name} style={[{ fontSize: 13 }, cardPlace.id === p.id && { color: '#fff' }]} />
               </Pressable>
             ))}
           </View>
@@ -310,7 +311,7 @@ export function GuardianScreen({ onClose }: { onClose: () => void }) {
           <View style={s.wrapRow}>
             {places.map((p) => (
               <Pressable key={p.id} style={[s.pChip, settings.placeId === p.id && s.pChipOn]} onPress={() => update({ placeId: p.id })}>
-                <Text style={[{ fontSize: 13 }, settings.placeId === p.id && { color: '#fff' }]}>{`${p.icon} ${p.name}`}</Text>
+                <IconText icon={p.icon} text={p.name} style={[{ fontSize: 13 }, settings.placeId === p.id && { color: '#fff' }]} />
               </Pressable>
             ))}
           </View>
@@ -322,7 +323,7 @@ export function GuardianScreen({ onClose }: { onClose: () => void }) {
           ) : (
             custom.map((p) => (
               <View key={p.id} style={s.mine}>
-                <Text style={{ fontSize: 14 }}>{`${p.icon} ${p.name}`}</Text>
+                <IconText icon={p.icon} text={`${p.name}`} style={{ fontSize: 14 }} />
                 <Pressable onPress={() => removePlace(p.id)} hitSlop={8}>
                   <Text style={{ color: C.danger, fontSize: 12 }}>삭제</Text>
                 </Pressable>
