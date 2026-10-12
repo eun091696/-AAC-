@@ -6,7 +6,6 @@
 1인 개발로 기획부터 디자인, 앱, 서버, AI 파이프라인, 배포, 스토어 출시 과정까지 진행했습니다.
 
 - 상태: Google Play 비공개 테스트 중 (2026.10)
-- 개인정보처리방침: https://eun091696.github.io/koktok-policy/privacy.html
 - 개발기: [LLM이랑 RAG 붙여본 기록](https://eun091696.tistory.com/23), [GitHub PR과 Actions로 CI 구축하기](https://eun091696.tistory.com/22)
 
 | 문장 만들기 | 상대에게 보여주기 | 쉬운 단계(L1) | AI 판 만들기 |
