@@ -15,8 +15,13 @@ let cachedData = null;
  */
 function loadData() {
   if (cachedData) return cachedData;
-  const raw = fs.readFileSync(DATA_PATH, 'utf8');
-  const parsed = JSON.parse(raw);
+  let parsed = {};
+  try {
+    parsed = JSON.parse(fs.readFileSync(DATA_PATH, 'utf8'));
+  } catch (err) {
+    // 사전이 없어도 서버가 꺼지지 않도록: 뜻 보정 없이 계속 동작
+    console.error(JSON.stringify({ event: 'visual_concepts_load_failed', path: DATA_PATH, error: err.code || err.message }));
+  }
   cachedData = {
     nouns: parsed.nouns || {},
     ambiguous: parsed.ambiguous || {},

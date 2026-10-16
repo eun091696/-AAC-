@@ -4,7 +4,7 @@ name: Deploy server
 on:
   push:
     branches: [main]
-    paths: ['server/**', '.github/workflows/deploy-server.yml']
+    paths: ['server/**', 'shared/**', '.github/workflows/deploy-server.yml']
   workflow_dispatch:
 
 concurrency:
@@ -42,7 +42,10 @@ jobs:
           sudo chmod +x /usr/local/bin/lightsailctl
 
       - name: 컨테이너 빌드
-        run: docker build -t koktok-api:${{ github.sha }} server
+        run: |
+          # 앱과 같이 쓰는 그림 뜻 사전(shared/)을 서버 이미지에 포함
+          cp -r shared server/shared
+          docker build -t koktok-api:${{ github.sha }} server
 
       - name: 이미지 업로드
         id: push

@@ -5,6 +5,8 @@ COPY package.json ./
 COPY bin ./bin
 COPY src ./src
 COPY library ./library
+# 그림 뜻 사전. 코드가 /app/src 기준 ../../shared 를 읽으므로 /shared 에 둔다
+COPY shared /shared
 ENV NODE_ENV=production \
     HOST=0.0.0.0 \
     PORT=8080 \
